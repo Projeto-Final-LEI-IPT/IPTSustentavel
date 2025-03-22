@@ -1,12 +1,10 @@
-/* Define a margem do corpo como 0 e a fonte padrão como Arial ou fontes sans-serif */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
 }
 
-/* Estilo para o cabeçalho com cor de fundo verde, texto branco e disposição flexível */
 .header {
-  background-color: #4CAF50;
+  background-color: #4CAF50; /* Verde principal */
   color: white;
   padding: 1rem;
   display: flex;
@@ -14,26 +12,23 @@ body {
   align-items: center;
 }
 
-/* Define o tamanho e o peso da fonte para o título do cabeçalho */
 .header-title {
   font-size: 1.5rem;
   font-weight: bold;
 }
 
-/* Organiza os ícones do cabeçalho em disposição flexível com espaçamento */
 .header-icons {
   display: flex;
   gap: 1.5rem;
   align-items: center;
 }
 
-/* Estilo para os ícones com cursor de ponteiro para indicar interatividade */
 .icon {
   font-size: 1.2rem;
   cursor: pointer;
 }
 
-/* Configuração do conteúdo principal com centralização e largura máxima */
+
 .main-content {
   padding: 2rem;
   text-align: center;
@@ -41,7 +36,6 @@ body {
   margin: 0 auto;
 }
 
-/* Estilo para o formulário de login com sombra e cantos arredondados */
 .login-form {
   max-width: 400px;
   margin: 2rem auto;
@@ -51,78 +45,115 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Margem para separar os grupos de elementos do formulário */
 .form-group {
   margin-bottom: 1.5rem;
 }
 
-/* Estilo para o campo de pesquisa com largura completa e bordas suaves */
 .search-input {
-  width: 100%;
+  flex: 1;
   padding: 0.8rem;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Botão de visualização de detalhes em verde com texto branco */
-.view-details {
-  background-color: #4CAF50; 
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
   width: 100%;
-  font-size: 1rem;
-  transition: background 0.3s ease;
 }
 
-/* Efeito hover para o botão de visualização de detalhes */
-.view-details:hover {
-  background-color: #45a049; 
-}
-
-/* Estilo para o botão de pesquisa em verde com texto branco */
-.search-button {
-  background: #45a049; 
+.view-details {
+  background-color: #4CAF50; /* Verde principal */
   color: white;
-  padding: 0.8rem 1.5rem;
+  padding: 0.8rem;
   border: none;
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.view-details:hover {
+  background-color: #45a049; /* Verde mais escuro */
+}
+
+/* Search Container */
+.search-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-button {
+  background: #4CAF50; /* Verde principal */
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
-/* Efeito hover para o botão de pesquisa */
 .search-button:hover {
-  background: #3d8b40; 
+  background: #45a049; /* Verde mais escuro */
 }
 
-/* Ajustes responsivos para ecrãs mais pequenos */
+
+.categories {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 2rem 0;
+}
+
+.category-card {
+  padding: 1rem 2rem;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-card.active {
+  background-color: #388E3C; /* Verde escuro para contraste */
+  color: white;
+  border: 2px solid #2E7D32;
+}
+
+.recent-section h2 {
+  text-align: left;
+  margin: 2rem 0 1rem;
+}
+
+.recent-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.item-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  text-align: left;
+}
+
 @media (max-width: 768px) {
   .main-content {
     padding: 1rem;
   }
   
-  .login-form {
-    padding: 1.5rem;
+  .category-card {
+    padding: 0.8rem 1.5rem;
   }
-}
 
-/* Efeito hover para todos os botões com redução de brilho */
-button:hover {
-  filter: brightness(0.9);
-}
-
-/* Estilo para o espaço reservado de imagem com cor de fundo cinzenta */
-.image-placeholder {
-  display: flex;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  color: #666;
-  font-size: 0.9rem;
-  background-color: #e0e0e0;
+  .search-container {
+    flex-direction: column;
+  }
+  
+  .search-button {
+    width: 100%;
+  }
 }
