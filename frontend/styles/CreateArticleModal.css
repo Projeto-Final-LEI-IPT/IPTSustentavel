@@ -1,0 +1,331 @@
+/* Layout Principal */
+.user-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Contentor principal do modal */
+.user-modal.article-modal {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 1200px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Container de duas colunas para o formulário */
+.form-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Divide o espaço em duas colunas iguais */
+  gap: 2rem;
+  min-height: 450px;
+  align-items: stretch;
+}
+
+/* Estilização da coluna esquerda - Formulário principal */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* Estilização da coluna direita - Área de upload de imagens */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  border-left: 1px solid #eee; /* Separador visual entre as colunas */
+  padding-left: 2rem;
+  height: 100%;
+  justify-content: space-between;
+}
+
+/* Estrutura do Formulário - Grid geral */
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Linha do formulário - Agrupamento horizontal de campos */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Campo de título - Ocupa toda a largura disponível */
+.title-group {
+  width: 100%;
+}
+
+/* Campos de categoria e estado - Ocupam toda a largura disponível */
+.category-group,
+.state-group {
+  width: 100%;
+}
+
+/* Grupo de campos alinhados à direita (categoria e estado) */
+.right-aligned-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Estilização dos elementos de formulário (inputs, selects, textareas) */
+.article-input,
+.article-select,
+.article-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+/* Altura específica para o campo de descrição */
+.article-textarea {
+  height: 80px; /* Altura reduzida */
+  resize: none; /* Impede o redimensionamento pelo utilizador */
+  line-height: 1.4;
+}
+
+/* Adiciona espaço extra à direita no contentor do textarea */
+.form-group.full-width > div {
+  padding-right: 1.7rem;
+}
+
+/* Efeitos de foco para os elementos do formulário */
+.article-input:focus,
+.article-select:focus,
+.article-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* Estilização do menu dropdown com ícone personalizado */
+.article-select {
+  appearance: none; /* Remove a aparência nativa do select */
+  background: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")
+    no-repeat right 1rem center/18px;
+}
+
+/* Área de upload de imagens - Estilo da zona de arrastar e largar */
+.image-upload-container {
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  padding: 1.5rem;
+  height: 100%;
+  min-height: 350px; /* Altura ajustada */
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s ease;
+  flex-grow: 1;
+}
+
+/* Efeito hover para a área de upload */
+.image-upload-container:hover {
+  border-color: #007bff;
+}
+
+/* Grelha para exibição das miniaturas de imagens */
+.image-previews {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(90px, 1fr)); /* 5 colunas para 5 imagens máx */
+  gap: 0.4rem;
+  margin-top: 1rem;
+  flex-grow: 1;
+}
+
+/* Contentor de miniatura individual */
+.image-preview {
+  position: relative;
+  padding-top: 80%; /* Proporção de aspecto para a miniatura */
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8f9fa;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Imagem dentro do contentor de miniatura */
+.image-preview img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Mantém a proporção da imagem cobrindo o espaço */
+}
+
+/* Botão para remover imagem */
+.remove-image-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  background: #dc3545; /* Vermelho */
+  font-size: 14px;
+  border: none;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+/* Efeito hover para o botão de remover */
+.remove-image-button:hover {
+  background: #bb2d3b; /* Vermelho mais escuro */
+  transform: scale(1.1); /* Aumenta ligeiramente o tamanho */
+}
+
+/* Contentor para os botões de ação (Cancelar e Publicar) */
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 50px;
+  padding: 1rem 0 0;
+  border-top: 1px solid #eee; /* Separador visual */
+}
+
+/* Estilo comum para os botões de ação */
+.btn-cancel, .btn-save {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Botão de cancelar - Estilo neutro */
+.btn-cancel {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  color: #333;
+}
+
+/* Efeito hover para o botão de cancelar */
+.btn-cancel:hover {
+  background: #e9ecef;
+}
+
+/* Botão de publicar - Estilo de destaque */
+.btn-save {
+  background: #007bff; /* Azul */
+  color: white;
+  border: none;
+}
+
+/* Efeito hover para o botão de publicar */
+.btn-save:hover {
+  background: #0056b3; /* Azul mais escuro */
+}
+
+/* Estado desativado do botão de publicar (durante o carregamento) */
+.btn-save:disabled {
+  background: #6c757d; /* Cinzento */
+  cursor: not-allowed;
+}
+
+/* Indicador visual para campos obrigatórios */
+label[required]::after {
+  content: "*";
+  color: #dc3545;
+  margin-left: 0.3rem;
+}
+
+/* Ajustes responsivos para tablets e dispositivos médios */
+@media (max-width: 768px) {
+  /* Muda para uma coluna em dispositivos mais pequenos */
+  .form-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  /* Ajustes para a coluna da direita quando fica abaixo da esquerda */
+  .right-column {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid #eee; /* Adiciona separador horizontal */
+    padding-top: 1.5rem;
+    gap: 1.5rem;
+  }
+  
+  /* Mantém a altura mínima da área de upload */
+  .image-upload-container {
+    min-height: 350px;
+  }
+  
+  /* Reduz o espaçamento entre os elementos */
+  .form-row {
+    gap: 1rem;
+  }
+  
+  /* Ajusta o espaçamento acima dos botões */
+  .modal-actions {
+    margin-top: 50px;
+    padding-top: 1.5rem;
+  }
+  
+  /* Ajusta a grelha de miniaturas para dispositivos médios */
+  .image-previews {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+}
+
+/* Ajustes responsivos para dispositivos muito pequenos */
+@media (max-width: 480px) {
+  /* Aumenta a largura do modal para usar melhor o espaço disponível */
+  .user-modal.article-modal {
+    width: 95%;
+    padding: 1rem;
+  }
+  
+  /* Empilha os botões verticalmente em vez de lado a lado */
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  /* Faz os botões ocuparem toda a largura disponível */
+  .btn-cancel, .btn-save {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Botão Fechar  */
+.close-button {
+}
+
+/* Efeito hover para o botão de fechar */
+.close-button:hover {
+  color: #333;
+}
+
+/* Classe utilitária para elementos que ocupam toda a largura */
+.full-width {
+  width: 100%;
+}
