@@ -14,6 +14,7 @@ import api from './services/api';
 import './App.css';
 
 import UserModal from './components/UserModal';
+import CreateArticleModal from './components/CreateArticleModal';
 
 // Componente de formulário do login que recebe a função onLogin como propriedade
 const LoginForm = ({ onLogin }) => {
@@ -199,6 +200,8 @@ function App() {
   const [userTypeId, setUserTypeId] = useState(''); // Cria um estado para armazenar o tipo de utilizador, inicializado como uma string vazia
   const [showUserModal, setShowUserModal] = useState(false);
   const [userId, setUserId] = useState('');
+  const [showCreateArticle, setShowCreateArticle] = useState(false);
+
   // Função para carregar dados da API (loadData) - Define uma função para obter dados de artigos e categorias da API
   const loadData = useCallback(async () => {
     try {
@@ -293,7 +296,7 @@ function App() {
               {/* Ícones da barra superior - Apresenta ícones na barra superior apenas quando o utilizador está autenticado */}
               <FiBell className="icon" title="Notificações" />
               <FiMessageCircle className="icon" title="Mensagens" />
-              <FiPlus className="icon" title="Criar novo artigo" />
+              <FiPlus className="icon" onClick={() => setShowCreateArticle(true)} />
               <FiUser className="icon" onClick={() => setShowUserModal(true)} />
               <FiLogOut
                 className="icon"
@@ -325,6 +328,13 @@ function App() {
           token={localStorage.getItem('token')}
           onClose={() => setShowUserModal(false)}
           onUpdate={(updatedData) => console.log('Dados atualizados:', updatedData)}
+        />
+      )}
+
+{showCreateArticle && (
+        <CreateArticleModal
+          onClose={() => setShowCreateArticle(false)}
+          userId={userId}
         />
       )}
 
