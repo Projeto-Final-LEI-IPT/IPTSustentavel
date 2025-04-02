@@ -15,6 +15,7 @@ import './App.css';
 
 import UserModal from './components/UserModal';
 import CreateArticleModal from './components/CreateArticleModal';
+import MessagesModal from './components/MessagesModal';
 
 // Componente de formulário do login que recebe a função onLogin como propriedade
 const LoginForm = ({ onLogin }) => {
@@ -201,7 +202,8 @@ function App() {
   const [showUserModal, setShowUserModal] = useState(false);
   const [userId, setUserId] = useState('');
   const [showCreateArticle, setShowCreateArticle] = useState(false);
-
+  const [showMessages, setShowMessages] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState(null);
   // Função para carregar dados da API (loadData) - Define uma função para obter dados de artigos e categorias da API
   const loadData = useCallback(async () => {
     try {
@@ -295,7 +297,7 @@ function App() {
             <>
               {/* Ícones da barra superior - Apresenta ícones na barra superior apenas quando o utilizador está autenticado */}
               <FiBell className="icon" title="Notificações" />
-              <FiMessageCircle className="icon" title="Mensagens" />
+              <FiMessageCircle className="icon" onClick={() => setShowMessages(true)} />
               <FiPlus className="icon" onClick={() => setShowCreateArticle(true)} />
               <FiUser className="icon" onClick={() => setShowUserModal(true)} />
               <FiLogOut
@@ -331,7 +333,17 @@ function App() {
         />
       )}
 
-{showCreateArticle && (
+      {showMessages && (
+        <MessagesModal
+          onClose={() => {
+            setShowMessages(false);
+            setSelectedRecipient(null);
+          }}
+          usuarioLogadoId={Number(userId)}
+        />
+      )}
+
+      {showCreateArticle && (
         <CreateArticleModal
           onClose={() => setShowCreateArticle(false)}
           userId={userId}
