@@ -1,12 +1,16 @@
 // Importação do React e dos hooks para gestão de estado
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 // Importação dos ícones da biblioteca react-icons/fi
 import {
   FiBell,
   FiMessageCircle,
   FiUser,
   FiLogOut,
-  FiPlus
+  FiPlus,
+  FiEdit,
+  FiSettings,
+  FiChevronLeft,
+  FiChevronRight
 } from 'react-icons/fi';
 // Importação da API para comunicação com o servidor
 import api from './services/api';
@@ -16,7 +20,7 @@ import './App.css';
 import UserModal from './components/UserModal';
 import CreateArticleModal from './components/CreateArticleModal';
 import MessagesModal from './components/MessagesModal';
-
+import useImageLoader from './hooks/useImageLoader';
 // Componente de formulário do login que recebe a função onLogin como propriedade
 const LoginForm = ({ onLogin }) => {
   // Estado para armazenar o email introduzido pelo utilizador
@@ -82,6 +86,61 @@ const LoginForm = ({ onLogin }) => {
   );
 };
 
+const ArticleImage = memo(({ foto }) => {
+  const imageUrl = useImageLoader(foto?.caminho_foto);
+
+  return (
+    <div className="article-image-container">
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={foto?.titulo}
+          className="article-image"
+          loading="lazy"
+        />
+      ) : (
+        <div className="image-placeholder">Sem imagem</div>
+      )}
+    </div>
+  );
+});
+
+const MemoizedArticle = memo(({ artigo, userId, onEditClick, onMessageClick, onArticleClick }) => {
+  return (
+    <div className="item-card">
+      <ArticleImage foto={artigo.fotos?.[0]} />
+      <div className="title-container">
+        <h3>{artigo.titulo}</h3>
+        <div className="icons-container">
+          {artigo.utilizador?.id.toString() === userId && (
+            <FiEdit
+              className="icon edit-icon"
+              onClick={() => onEditClick(artigo)}
+              title="Editar artigo"
+            />
+          )}
+          {artigo.utilizador?.id.toString() !== userId && (
+            <FiMessageCircle
+              className="icon message-icon-title"
+              onClick={() => onMessageClick(artigo.utilizador?.id)}
+              title="Enviar mensagem"
+            />
+          )}
+        </div>
+      </div>
+      <p>Estado: {artigo.estado || 'Indisponível'}</p>
+      <p>Categoria: {artigo.categoria?.nome || 'Sem categoria'}</p>
+      <div className="item-actions">
+        <button
+          className="view-details"
+          onClick={() => onArticleClick(artigo)}
+        >
+          Ver Detalhes
+        </button>
+      </div>
+    </div>
+  );
+});
 
 // Componente principal do conteúdo após login
 // Esta linha define o nome e a função do componente, indicando que este é o componente principal 
@@ -100,20 +159,64 @@ const MainContent = ({
 }) => {
   // Estado para armazenar a categoria selecionada
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isSearching, setIsSearching] = useState(false);
+  const [groupIndex, setGroupIndex] = useState(0);
 
+  const itemsPerPage = 10;
+  const maxCategories = 15;
+  const categoriesPerGroup = 4;
+
+  const limitedCategories = useMemo(() =>
+    categorias.slice(0, maxCategories),
+    [categorias]
+  );
+
+  const totalGroups = useMemo(() =>
+    Math.ceil(limitedCategories.length / categoriesPerGroup),
+    [limitedCategories]
+  );
   // Filtra os artigos com base na categoria selecionada
-  const filteredArtigos = artigos.filter(artigo => {
-    return !selectedCategory || artigo.categoria?.id === selectedCategory;
-  });
+  const filteredArtigos = useMemo(() =>
+    artigos.filter(artigo =>
+      (!selectedCategory || artigo.categoria?.id === selectedCategory) &&
+      artigo.titulo.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+    [artigos, selectedCategory, searchTerm]
+  );
 
   // Função para lidar com o clique nas categorias
-  const handleCategoryClick = (categoryId) => {
+  const handleCategoryClick = useCallback((categoryId) => {
     setSelectedCategory(prev => prev === categoryId ? null : categoryId);
-  };
+    setCurrentPage(1);
+    setIsSearching(false);
+  }, []);
+
+  const handleSearchClick = useCallback(() => {
+    onSearch(tempSearchTerm);
+    setSearchTerm(tempSearchTerm);
+    setCurrentPage(1);
+    setIsSearching(!!tempSearchTerm.trim());
+  }, [tempSearchTerm, setSearchTerm, onSearch]);
+
+  const handleNext = useCallback(() => {
+    setGroupIndex(prev => Math.min(prev + 1, totalGroups - 1));
+  }, [totalGroups]);
+
+  const handlePrev = useCallback(() => {
+    setGroupIndex(prev => Math.max(prev - 1, 0));
+  }, []);
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentArticles = filteredArtigos.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredArtigos.length / itemsPerPage);
 
   return (
     // Inicia o elemento principal com a classe "main-content" que contém todo o conteúdo principal da aplicação após o login
     <main className="main-content">
+      <h1>Bem-vindo à Plataforma de Trocas IPT</h1>
       {/*Div que contém a barra de pesquisa e o botão, com a classe "search-container" para estilização*/}
       <div className="search-container">
         {/*Campo de introdução de texto para a pesquisa de artigos com as seguintes propriedades:
@@ -126,10 +229,11 @@ const MainContent = ({
           type="text"
           className="search-input"
           placeholder="Pesquisar artigos..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={tempSearchTerm}
+          onChange={(e) => setTempSearchTerm(e.target.value)}
         />
-        <button className="search-button" onClick={onSearch}>
+        <button className="search-button" onClick={handleSearchClick}
+          type="button">
           Pesquisar
         </button>
       </div>
@@ -137,54 +241,103 @@ const MainContent = ({
       {/*Comentário JavaScript XML que indica o início da secção que mostra as categorias disponíveis*/}
       {/* Secção de categorias */}
       {/*Contentor principal que agrupa todas as categorias, com a classe "categories" para estilização*/}
-      <div className="categories">
+      <div className="categories-carousel">
+        <button
+          className="carousel-button prev"
+          onClick={handlePrev}
+          disabled={groupIndex === 0}
+        >
+          <FiChevronLeft />
+        </button>
         {/*Utiliza o método map para iterar sobre o array de categorias e criar um elemento div para cada categoria*/}
         {/*A arrow function recebe cada objeto "categoria" e gera um elemento JSX (JavaScript XML) para ele*/}
-        {categorias.map((categoria) => (
-          <div
-            // A propriedade key é obrigatória em listas React para otimização de renderização
-            // Utiliza o id da categoria como chave única
-            key={categoria.id}
-            // Define a classe CSS dinâmica para o cartão de categoria:
-            // - Sempre aplica a classe "category-card"
-            // - Adicionalmente aplica a classe "active" se esta categoria estiver selecionada (selectedCategory === categoria.id)
-            // - Caso contrário, não aplica classes adicionais ('')
-            className={`category-card ${selectedCategory === categoria.id ? 'active' : ''}`}
-            // Define o manipulador de eventos onClick para esta categoria
-            // Quando o utilizador clica na categoria, executa a função handleCategoryClick passando o id da categoria como argumento
-            onClick={() => handleCategoryClick(categoria.id)}
-          >
-            {/*Mostra o nome da categoria dentro do div*/}
-            {categoria.nome}
-          </div>
-        ))}
+        <div className="categories-container">
+          {limitedCategories
+            .slice(
+              groupIndex * categoriesPerGroup,
+              (groupIndex + 1) * categoriesPerGroup
+            )
+            .map((categoria) => (
+              <div
+                // A propriedade key é obrigatória em listas React para otimização de renderização
+                // Utiliza o id da categoria como chave única
+                key={categoria.id}
+                // Define a classe CSS dinâmica para o cartão de categoria:
+                // - Sempre aplica a classe "category-card"
+                // - Adicionalmente aplica a classe "active" se esta categoria estiver selecionada (selectedCategory === categoria.id)
+                // - Caso contrário, não aplica classes adicionais ('')
+                className={`category-card ${selectedCategory === categoria.id ? 'active' : ''}`}
+                // Define o manipulador de eventos onClick para esta categoria
+                // Quando o utilizador clica na categoria, executa a função handleCategoryClick passando o id da categoria como argumento
+                onClick={() => handleCategoryClick(categoria.id)}
+              >
+                {/*Mostra o nome da categoria dentro do div*/}
+                {categoria.nome}
+              </div>
+            ))}
+        </div>
+        <button
+          className="carousel-button next"
+          onClick={handleNext}
+          disabled={groupIndex === totalGroups - 1}
+        >
+          <FiChevronRight />
+        </button>
       </div>
+
 
       {/* Comentário JavaScript XML que indica o início da secção que mostra os artigos recente*/}
       {/* Secção de artigos recentes */}
       {/* Contentor principal da secção de artigos recentes, com a classe "recent-section" para estilização*/}
       <div className="recent-section">
         {/* Título da secção de artigos recentes*/}
-        <h2>Artigos Recentes</h2>
+        <h2>
+          {isSearching || searchTerm ?
+            `Resultados para "${searchTerm}"` :
+            'Artigos Recentes'
+          }
+        </h2>
+
         {/* Contentor que agrupa todos os cartões de artigos, com a classe "recent-items" para estilização*/}
         <div className="recent-items">
           {/*Utiliza o método map para iterar sobre o array de artigos filtrados e criar um elemento para cada artigo
         // A arrow function recebe cada objeto "artigo" e gera um elemento JSX para ele*/}
-          {filteredArtigos.map((artigo) => (
-            // Cria um cartão para cada artigo, com uma chave única baseada no ID do artigo e a classe "item-card"
-            <div key={artigo.id} className="item-card">
-              {/*  Contentor específico para o título do artigo, com a classe "title-container" para estilização*/}
-              <div className="title-container">
-                {/*  Título do artigo exibido como um cabeçalho de nível 3*/}
-                <h3>{artigo.titulo}</h3>
-              </div>
-              {/*  Parágrafo que mostra o nome da categoria do artigo, ou "Sem categoria" se não houver categoria
-             // O operador ?. (optional chaining) verifica se artigo.categoria existe antes de tentar aceder a .nome
-             // Isto evita erros se artigo.categoria for null ou undefined*/}
-              <p>Estado: {artigo.estado || 'Indisponível'}</p>
-              <p>Categoria: {artigo.categoria?.nome || 'Sem categoria'}</p>
-            </div>
+          {currentArticles.map((artigo) => (
+            <MemoizedArticle
+              // Cria um cartão para cada artigo, com uma chave única baseada no ID do artigo e a classe "item-card"
+              key={artigo.id}
+              artigo={artigo}
+              userId={userId}
+            />
           ))}
+        </div>
+
+        <div className="pagination">
+          <button
+            className="page-button"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            Anterior
+          </button>
+
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i + 1}
+              className={`page-button ${currentPage === i + 1 ? 'active' : ''}`}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            className="page-button"
+            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Próxima
+          </button>
         </div>
       </div>
     </main>
@@ -204,6 +357,7 @@ function App() {
   const [showCreateArticle, setShowCreateArticle] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState(null);
+  
   // Função para carregar dados da API (loadData) - Define uma função para obter dados de artigos e categorias da API
   const loadData = useCallback(async () => {
     try {
@@ -211,6 +365,7 @@ function App() {
       const [artigosResponse, categoriasResponse] = await Promise.all([
         // Faz um pedido GET para obter a lista de artigos, incluindo o token de autenticação nos cabeçalhos
         api.get('/artigos', {
+          params: { include: ['fotos', 'categoria'] },
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }),
         // Faz um pedido GET para obter a lista de categorias, também incluindo o token de autenticação
@@ -270,18 +425,23 @@ function App() {
     localStorage.clear();
     // Atualiza o estado de autenticação para falso, indicando que o utilizador já não está autenticado
     setIsAuthenticated(false);
+    setUserTypeId('');
+    setUserId('');
   };
 
   // Função para pesquisa de artigos - Define uma função para pesquisar artigos com base no termo de pesquisa
-  const handleSearch = useCallback(async () => {
+  const handleSearch = useCallback(async (term) => {
     try {
       // Faz um pedido GET à API com o termo de pesquisa como parâmetro
       const response = await api.get('/artigos', {
-        params: { titulo: searchTerm },
+        params: {  
+          include: ['fotos', 'categoria'],
+          titulo: term },
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       // Atualiza o estado dos artigos com os resultados da pesquisa
       setArtigos(response.data);
+      if (!term.trim()) setSearchTerm('');
     } catch (error) {
       console.error('Erro na pesquisa:', error);
     }
@@ -297,6 +457,13 @@ function App() {
             <>
               {/* Ícones da barra superior - Apresenta ícones na barra superior apenas quando o utilizador está autenticado */}
               <FiBell className="icon" title="Notificações" />
+              {userTypeId === '2' && (
+                <FiSettings
+                  className="icon"                  
+                  title="Backoffice"
+                />
+              )}
+              
               <FiMessageCircle className="icon" onClick={() => setShowMessages(true)} />
               <FiPlus className="icon" onClick={() => setShowCreateArticle(true)} />
               <FiUser className="icon" onClick={() => setShowUserModal(true)} />
