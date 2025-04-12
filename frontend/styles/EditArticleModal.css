@@ -1,0 +1,416 @@
+/* Estilo para a sobreposição do modal que cobre toda a tela */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Z-index alto para garantir que esteja sobre outros elementos */
+}
+
+/* Estilo para o contentor principal do modal */
+.article-detail-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 1200px;
+  width: 90%;
+  max-height: 90vh; /* Limita a altura máxima a 90% da altura da janela */
+  overflow-y: auto; /* Adiciona barra de rolagem vertical quando necessário */
+  position: relative;
+}
+
+/* Botão para fechar o modal */
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+  transition: opacity 0.3s;
+}
+
+.close-button:hover {
+  opacity: 0.7;
+}
+
+/* Layout de grelha para o conteúdo do modal */
+.product-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dividido em duas colunas iguais */
+  gap: 2rem;
+  margin-top: 1rem;
+  height: 87vh;
+  min-height: 0;
+  align-items: start;
+}
+
+/* Estilo para a secção do formulário à esquerda */
+.form-section {
+  padding-right: 2rem;
+  border-right: 1px solid #eee; /* Separador visual */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Estilo para a secção da galeria à direita */
+.gallery-section {
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  height: 100%;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+/* Estilo para os títulos dentro do modal */
+.product-title,
+.gallery-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  padding: 0 0.5rem;
+}
+
+/* Contador de caracteres nos títulos */
+.gallery-title span {
+  font-weight: normal;
+  font-size: 0.9em;
+  color: #666;
+  margin-left: 0.3rem;
+}
+
+/* Contentor para a imagem principal */
+.main-image {
+  height: 68%;
+  background: #f5f5f5;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Estilo para a imagem principal do produto */
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Mantém a proporção da imagem */
+}
+
+/* Grelha para as miniaturas das imagens */
+.thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 colunas com largura igual */
+  gap: 0.6rem;
+  overflow-y: auto;
+  padding: 0 0.5rem 1rem;
+  height: 50%;
+  flex-grow: 0;
+}
+
+/* Estilo para cada item de miniatura */
+.thumbnail-item {
+  aspect-ratio: 1/1; /* Proporção quadrada */
+  background: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Estilo para a imagem dentro da miniatura */
+.thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Estilo para o botão de adicionar nova imagem */
+.upload-thumbnail {
+  aspect-ratio: 1/1;
+  background: #f8f9fa;
+  border: 2px dashed #ddd;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #666;
+  padding: 1rem;
+  text-align: center;
+}
+
+.upload-thumbnail:hover {
+  border-color: #007bff;
+  background: #e3f2fd;
+}
+
+/* Botão para apagar uma foto */
+.delete-photo-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 50%;
+  padding: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-photo-btn:hover {
+  background: #ff4444;
+  color: white;
+}
+
+/* Layout de grelha para os campos do formulário */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 colunas com largura igual */
+  gap: 1rem !important;
+  margin-bottom: 2rem;
+  flex-grow: 1;
+}
+
+/* Estilo para os grupos de campos de formulário */
+.form-group {
+  margin-bottom: 0.8rem !important;
+  position: relative;
+}
+
+/* Campos que ocupam a largura total da grelha */
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Estilo para os rótulos dos campos */
+.form-group label {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #444;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+/* Indicador visual para campos obrigatórios */
+.form-group.required label::after {
+  content: '*';
+  color: #dc3545;
+  margin-left: 4px;
+}
+
+/* Estilo para o contador de caracteres */
+.char-count {
+  font-weight: normal;
+  color: #666;
+  font-size: 0.9em;
+  order: 1;
+}
+
+/* Estilo para inputs, selects e textareas */
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.15s ease-in-out;
+}
+
+/* Largura máxima para campos de texto */
+.form-group input[type="text"] {
+  max-width: 25ch;
+}
+
+/* Efeito de foco para os elementos do formulário */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+/* Contentor para as textareas */
+.textarea-container {
+  margin: 0.2rem 0 !important;
+  position: relative;
+}
+
+/* Estilo específico para textareas */
+.form-group textarea {
+  min-height: 80px !important;
+  height: auto;
+  resize: vertical; /* Permite redimensionar verticalmente */
+  line-height: 1.5;
+  padding: 0.6rem !important;
+}
+
+/* Placeholder quando não há imagens */
+.image-placeholder {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+}
+
+/* Contentor para os botões de ação do modal */
+.modal-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding-top: 2rem;
+}
+
+/* Estilo base para os botões de ação */
+.btn-cancel,
+.btn-save {
+  padding: 0.8rem 2rem;
+  min-width: 180px;
+  text-align: center;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Estilo específico para o botão de guardar */
+.btn-save {
+  background: #007bff;
+  color: white;
+  border: 1px solid #0056b3;
+}
+
+/* Efeito hover para os botões */
+.btn-cancel:hover,
+.btn-save:hover {
+  transform: translateY(-1px);
+}
+
+.btn-save:hover {
+  background: #0056b3;
+}
+
+/* Media queries para responsividade */
+@media (max-width: 1024px) {
+  .thumbnail-grid {
+    grid-template-columns: repeat(4, 1fr); /* Reduz para 4 colunas em ecrãs menores */
+  }
+}
+
+@media (max-width: 768px) {
+  .product-container {
+    grid-template-columns: 1fr; /* Muda para layout vertical */
+    height: auto;
+  }
+  
+  .form-section {
+    padding-right: 0;
+    border-right: none;
+    height: auto;
+  }
+  
+  .gallery-section {
+    padding: 0;
+    border-top: 1px solid #eee;
+    padding-top: 2rem;
+    height: auto;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr; /* Uma coluna em ecrãs menores */
+  }
+  
+  .product-title,
+  .gallery-title {
+    font-size: 1.1rem;
+    padding: 0 0.3rem;
+    margin-bottom: 0.6rem;
+  }
+  
+  .thumbnail-grid {
+    grid-template-columns: repeat(3, 1fr); /* Reduz para 3 colunas */
+    height: auto;
+    padding: 0 0.3rem 1rem;
+    gap: 0.4rem;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    padding-top: 2rem;
+  }
+  
+  .btn-cancel,
+  .btn-save {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .image-placeholder {
+    font-size: 1.1rem;
+  }
+
+  .main-image {
+    height: 300px;
+    margin-bottom: 0.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .article-detail-modal {
+    width: 95%;
+    padding: 0.8rem;
+  }
+  
+  .thumbnail-grid {
+    grid-template-columns: repeat(2, 1fr); /* Reduz para 2 colunas em ecrãs muito pequenos */
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.6rem;
+  }
+
+  .form-group textarea {
+    min-height: 80px;
+  }
+
+  .product-title,
+  .gallery-title,
+  .image-placeholder {
+    font-size: 1rem;
+  }
+
+  .main-image {
+    height: 250px;
+  }
+}
