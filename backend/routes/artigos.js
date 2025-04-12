@@ -6,16 +6,79 @@ const express = require('express');
 const router = express.Router();
 // Importa o middleware de autenticação
 const authenticateToken = require('../middleware/auth');
-// Importa os modelos da base de dado
+// Importa os modelos da base de dados
 const db = require('../models');
+// Importa operadores do Sequelize para filtros
+const { Op } = require('sequelize');
+// Módulo para operações com o sistema de ficheiros
+const fs = require('fs');
+// Módulo para manipulação de caminhos de ficheiro
+const path = require('path');
+// Middleware para gestão de upload de ficheiros
+const multer = require('multer');
+
+// Configurações de segurança
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // Limite máximo de 5MB para ficheiros
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg', // Permite JPEGs
+  'image/png', // Permite PNGs
+  'image/gif', // Permite GIFs
+  'image/webp' // Permite WebP
+];
+
+// Verifica e cria o diretório de uploads
+// Verifica se a pasta de uploads existe; se não, cria-a
+const uploadDir = path.join(__dirname, '../pictures'); // Define o caminho para a pasta de uploads
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true }); // Cria a pasta recursivamente se não existir
+}
+
+// Configuração segura do Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir); // Define o destino dos ficheiros carregados
+  },
+  filename: (req, file, cb) => {
+    const sanitizedName = Date.now() + '_' +
+      file.originalname.replace(/[^a-zA-Z0-9_.-]/g, ''); // Sanitiza o nome do ficheiro, removendo caracteres potencialmente perigosos
+    cb(null, sanitizedName); // Define o nome final do ficheiro
+  }
+});
+// Função de filtro para verificar os tipos de ficheiros permitidos
+const fileFilter = (req, file, cb) => {
+  if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+    cb(null, true); // Aceita o ficheiro se o tipo MIME estiver na lista permitida
+  } else {
+    cb(new Error('Tipo de arquivo não permitido'), false); // Rejeita o ficheiro se o tipo não for permitido
+  }
+};
+
+// Configuração completa do middleware Multer
+const upload = multer({
+  storage: storage, // Usa a configuração de armazenamento definida acima
+  limits: {
+    fileSize: MAX_FILE_SIZE, // Limita o tamanho do ficheiro a 5MB
+    files: 5 // 
+  },
+  fileFilter: fileFilter // Usa a função de filtro definida acima
+});
 
 // GET todos os artigos (público)
 // Rota para obter todos os artigos (requer autenticação)
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const artigos = await db.Artigo.findAll({
-      include: [
+    // Captura parâmetros de consulta
+    const { titulo } = req.query;
 
+    // Construir cláusula WHERE dinâmica
+    const whereClause = {};
+    if (titulo) {
+      whereClause.titulo = { [Op.like]: `%${titulo}%` }; // Filtra por correspondência parcial
+    }
+
+    const artigos = await db.Artigo.findAll({
+      where: whereClause, // Aplica filtro de pesquisa
+      include: [
         {
           model: db.Utilizador,
           as: 'utilizador',
@@ -26,15 +89,15 @@ router.get('/', authenticateToken, async (req, res) => {
           as: 'categoria',
           attributes: ['id', 'nome']
         },
-
         {
           model: db.ArtigoFotos,
           as: 'fotos',
           attributes: ['id', 'caminho_foto']
         }
       ],
-      order: [['data_publicacao', 'DESC']]
+      order: [['data_publicacao', 'DESC']] // Ordena por data decrescente
     });
+
     res.json(artigos);
   } catch (error) {
     res.status(500).send({
@@ -60,8 +123,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
           model: db.Categoria,
           as: 'categoria',
           attributes: ['id', 'nome']
-        }
-        ,
+        },
         {
           model: db.ArtigoFotos,
           as: 'fotos',
@@ -95,6 +157,7 @@ router.post('/', authenticateToken, async (req, res) => {
     disponivel,
     validade_meses
   } = req.body;
+
   // Verifica se os campos obrigatórios estão presentes
   if (!titulo || !categoria_id) {
     return res.status(400).send({
@@ -106,14 +169,15 @@ router.post('/', authenticateToken, async (req, res) => {
     // Cria um novo artigo com os dados fornecidos
     const novoArtigo = await db.Artigo.create({
       titulo,
-      descricao: descricao || null, // Se não fornecido, usa null
-      estado: estado || 'Disponível', // Valor padrão: 'Disponível'
+      descricao: descricao || null,
+      estado: estado || 'Disponível',
       categoria_id,
-      disponivel: disponivel !== undefined ? disponivel : true, // Valor padrão: true
-      validade_meses: validade_meses || 6, // Valor padrão: 6 meses
-      utilizador_id: req.user.id, // ID do utilizador autenticado
-      data_publicacao: new Date()  // Data atual
+      disponivel: disponivel !== undefined ? disponivel : true,
+      validade_meses: validade_meses || 6,
+      utilizador_id: req.user.id,
+      data_publicacao: new Date()
     });
+
     // Procura o artigo criado com suas relações
     const artigoCompleto = await db.Artigo.findByPk(novoArtigo.id, {
       include: [
@@ -121,6 +185,7 @@ router.post('/', authenticateToken, async (req, res) => {
         { model: db.Categoria, as: 'categoria' }
       ]
     });
+
     // Retorna o artigo criado com status 201
     res.status(201).json(artigoCompleto);
   } catch (error) {
@@ -154,10 +219,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
         message: "Não tem permissão para editar este artigo"
       });
     }
+
     // Atualiza o artigo e obtém o número de linhas afetadas
     const [numLinhasAfetadas] = await db.Artigo.update(req.body, {
       where: { id: id }
     });
+
     // Verifica se a atualização foi bem-sucedida
     if (numLinhasAfetadas === 1) {
       res.send({ message: "Artigo atualizado com sucesso" });
@@ -173,6 +240,78 @@ router.put('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// DELETE apagar uma foto específica de um artigo (protegido)
+router.delete('/:artigoId/fotos/:fotoId', authenticateToken, async (req, res) => {
+  try {
+    const foto = await db.ArtigoFotos.findOne({
+      where: {
+        id: req.params.fotoId,
+        artigo_id: req.params.artigoId
+      },
+      include: [{ model: db.Artigo, as: 'artigo' }]
+    });
+
+    if (!foto) {
+      return res.status(404).json({ message: "Foto não encontrada" });
+    }
+
+    // Verificar se o usuário é o dono do artigo
+    if (foto.artigo.utilizador_id !== req.user.id) {
+      return res.status(403).json({ message: "Sem permissão" });
+    }
+
+    // Deletar o arquivo físico
+    const filePath = path.join(uploadDir, foto.caminho_foto);
+    fs.unlinkSync(filePath); // Remove o arquivo
+
+    // Deletar do banco de dados
+    await foto.destroy();
+
+    res.json({ message: "Foto excluída com sucesso" });
+  } catch (error) {
+    res.status(500).json({
+      message: "Erro ao excluir foto",
+      error: error.message
+    });
+  }
+});
+
+
+
+// POST adicionar fotos a um artigo (protegido)
+router.post('/:id/fotos', authenticateToken, upload.array('fotos', 5), // Middleware para processar múltiplos arquivos
+  async (req, res) => {
+    try {
+      const artigo = await db.Artigo.findByPk(req.params.id);
+
+      if (!artigo || artigo.utilizador_id !== req.user.id) {
+        return res.status(403).json({ message: "Operação não permitida" });
+      }
+
+      // Processar upload de fotos
+      const fotos = req.files.map(file => ({
+        caminho_foto: file.filename,
+        artigo_id: artigo.id
+      }));
+
+      await db.ArtigoFotos.bulkCreate(fotos);
+
+      res.json({ 
+        message: "Fotos adicionadas com sucesso",
+        fotos 
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        message: "Erro ao adicionar fotos",
+        error: error.message
+      });
+    }
+  }
+);
+
+
+
 // DELETE apagar artigo (protegido)
 // Rota para apagar um artigo (requer autenticação)
 router.delete('/:id', authenticateToken, async (req, res) => {
@@ -182,6 +321,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     // Procura o artigo a ser apagado
     const artigo = await db.Artigo.findByPk(id);
+
     // Verifica se o artigo existe
     if (!artigo) {
       return res.status(404).send({
@@ -190,16 +330,17 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     // Verificar se o utlizador é o dono do artigo
-    // Verifica se o utilizador tem permissão para apagar
     if (artigo.utilizador_id !== req.user.id) {
       return res.status(403).send({
         message: "Não tem permissão para apagar este artigo"
       });
     }
+
     // Apaga o artigo e obtém o número de linhas afetadas
     const numLinhasAfetadas = await db.Artigo.destroy({
       where: { id: id }
     });
+
     // Verifica se a eliminação foi bem-sucedida
     if (numLinhasAfetadas === 1) {
       res.send({ message: "Artigo apagado com sucesso" });
@@ -214,5 +355,6 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     });
   }
 });
+
 // Exporta o router para uso em outros ficheiros
 module.exports = router;
