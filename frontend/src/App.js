@@ -10,17 +10,24 @@ import {
   FiEdit,
   FiSettings,
   FiChevronLeft,
-  FiChevronRight
+  FiChevronRight,
+  FiX
 } from 'react-icons/fi';
 // Importação da API para comunicação com o servidor
 import api from './services/api';
 // Importação do ficheiro de estilos CSS
 import './App.css';
+// Adiciona o import do logotipo
+import iptLogo from './ipt.png';
 
+// importação dos modais
 import UserModal from './components/UserModal';
 import CreateArticleModal from './components/CreateArticleModal';
 import MessagesModal from './components/MessagesModal';
 import useImageLoader from './hooks/useImageLoader';
+import SendMessageModal from './components/SendMessageModal';
+import EditArticleModal from './components/EditArticleModal';
+import ArticleDetailModal from './components/ArticleDetailModal';
 // Componente de formulário do login que recebe a função onLogin como propriedade
 const LoginForm = ({ onLogin }) => {
   // Estado para armazenar o email introduzido pelo utilizador
@@ -86,32 +93,41 @@ const LoginForm = ({ onLogin }) => {
   );
 };
 
+// Componente para exibir a imagem do artigo
+// Usa memo para evitar renderizações desnecessárias
 const ArticleImage = memo(({ foto }) => {
+  // Utiliza um hook personalizado para carregar a imagem
   const imageUrl = useImageLoader(foto?.caminho_foto);
 
   return (
     <div className="article-image-container">
       {imageUrl ? (
+        // Renderiza a imagem se estiver disponível
         <img
           src={imageUrl}
           alt={foto?.titulo}
           className="article-image"
-          loading="lazy"
+          loading="lazy" // Carregamento "preguiçoso" para melhor performance
         />
       ) : (
+        // Mostra um placeholder se não houver imagem
         <div className="image-placeholder">Sem imagem</div>
       )}
     </div>
   );
 });
 
+// Componente principal do artigo
+// Otimizado com memo para prevenir renderizações desnecessárias
 const MemoizedArticle = memo(({ artigo, userId, onEditClick, onMessageClick, onArticleClick }) => {
   return (
     <div className="item-card">
+      {/* Renderiza a primeira foto do artigo, se existir */}
       <ArticleImage foto={artigo.fotos?.[0]} />
       <div className="title-container">
         <h3>{artigo.titulo}</h3>
         <div className="icons-container">
+          {/* Mostra ícone de edição apenas se o utilizador atual for o autor */}
           {artigo.utilizador?.id.toString() === userId && (
             <FiEdit
               className="icon edit-icon"
@@ -119,6 +135,7 @@ const MemoizedArticle = memo(({ artigo, userId, onEditClick, onMessageClick, onA
               title="Editar artigo"
             />
           )}
+          {/* Mostra ícone de mensagem apenas se o utilizador atual NÃO for o autor */}
           {artigo.utilizador?.id.toString() !== userId && (
             <FiMessageCircle
               className="icon message-icon-title"
@@ -128,9 +145,12 @@ const MemoizedArticle = memo(({ artigo, userId, onEditClick, onMessageClick, onA
           )}
         </div>
       </div>
+      {/* Informação sobre o estado do artigo (com valor predefinido) */}
       <p>Estado: {artigo.estado || 'Indisponível'}</p>
+      {/* Informação sobre a categoria do artigo (com valor predefinido) */}
       <p>Categoria: {artigo.categoria?.nome || 'Sem categoria'}</p>
       <div className="item-actions">
+        {/* Botão para ver mais detalhes sobre o artigo */}
         <button
           className="view-details"
           onClick={() => onArticleClick(artigo)}
@@ -155,24 +175,48 @@ const MainContent = ({
   // userId: identificador único do utilizador que está autenticado na sessão atual
   userId,
   // onSearch: função que será executada quando o utilizador clicar no botão de pesquisa
-  onSearch
+  onSearch,
+  // onMessageClick: função que será executada quando o utilizador clicar para enviar mensagem, a mensagem é enviada do utilizador logado, para o proprietario do artigo
+  onMessageClick,
+  // onEditClick: função que será executada quando o utilizador(autor) clicar para edita o artigo
+  onEditClick,
+  // onArticleClick: função que será executada quando o utilizador clicar no botão de "Ver Detalhes" do artigo
+  onArticleClick
 }) => {
   // Estado para armazenar a categoria selecionada
   const [selectedCategory, setSelectedCategory] = useState(null);
+  // Estado para armazenar temporariamente o termo de pesquisa enquanto o utilizador digita
   const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
+  // Estado para controlar a paginação dos resultados
   const [currentPage, setCurrentPage] = useState(1);
+  // Estado para indicar se uma pesquisa está em curso
   const [isSearching, setIsSearching] = useState(false);
+  // Estado para controlar qual grupo de categorias está a ser exibido
   const [groupIndex, setGroupIndex] = useState(0);
 
-  const itemsPerPage = 10;
-  const maxCategories = 15;
-  const categoriesPerGroup = 4;
+  // Constantes de configuração
+  const itemsPerPage = 10;      // Número de itens a mostrar por página
+  const maxCategories = 15;     // Número máximo de categorias a serem consideradas
+  const categoriesPerGroup = 4; // Número de categorias por grupo de visualização
 
+  // Memoriza um subconjunto limitado de categorias para melhorar o desempenho
+  // Só é recalculado quando o array 'categorias' muda
   const limitedCategories = useMemo(() =>
     categorias.slice(0, maxCategories),
     [categorias]
   );
 
+  // Função para limpar os termos de pesquisa e reiniciar o estado de pesquisa
+  // useCallback evita recriações desnecessárias da função
+  const handleClear = useCallback(() => {
+    setTempSearchTerm('');
+    setSearchTerm('');
+    onSearch('');
+    setIsSearching(false);
+  }, [onSearch, setSearchTerm]);
+
+  // Calcula o número total de grupos de categorias
+  // Só é recalculado quando limitedCategories muda
   const totalGroups = useMemo(() =>
     Math.ceil(limitedCategories.length / categoriesPerGroup),
     [limitedCategories]
@@ -193,25 +237,32 @@ const MainContent = ({
     setIsSearching(false);
   }, []);
 
+  // Função para executar a pesquisa quando o utilizador clica no botão de pesquisa
+  // useCallback evita recriações desnecessárias desta função
   const handleSearchClick = useCallback(() => {
-    onSearch(tempSearchTerm);
-    setSearchTerm(tempSearchTerm);
-    setCurrentPage(1);
-    setIsSearching(!!tempSearchTerm.trim());
+    onSearch(tempSearchTerm); // Executa a pesquisa com o termo temporário
+    setSearchTerm(tempSearchTerm); // Atualiza o termo de pesquisa oficial
+    setCurrentPage(1); // Volta para a primeira página após uma nova pesquisa
+    setIsSearching(!!tempSearchTerm.trim()); // Ativa o estado de pesquisa se existir texto de pesquisa
   }, [tempSearchTerm, setSearchTerm, onSearch]);
 
+  // Função para avançar para o próximo grupo de categorias
+  // Impede que o índice ultrapasse o número total de grupos
   const handleNext = useCallback(() => {
     setGroupIndex(prev => Math.min(prev + 1, totalGroups - 1));
   }, [totalGroups]);
 
+  // Função para voltar ao grupo anterior de categorias
+  // Impede que o índice seja menor que zero
   const handlePrev = useCallback(() => {
     setGroupIndex(prev => Math.max(prev - 1, 0));
   }, []);
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentArticles = filteredArtigos.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredArtigos.length / itemsPerPage);
+  // Cálculo dos índices para a paginação dos artigos
+  const startIndex = (currentPage - 1) * itemsPerPage;  // Índice do primeiro artigo na página atual
+  const endIndex = startIndex + itemsPerPage;           // Índice do último artigo na página atual
+  const currentArticles = filteredArtigos.slice(startIndex, endIndex);  // Artigos a serem exibidos na página atual
+  const totalPages = Math.ceil(filteredArtigos.length / itemsPerPage);  // Total de páginas baseado no número de artigos filtrados
 
   return (
     // Inicia o elemento principal com a classe "main-content" que contém todo o conteúdo principal da aplicação após o login
@@ -225,20 +276,39 @@ const MainContent = ({
       - placeholder="Pesquisar artigos...": texto de ajuda visível quando o campo está vazio
       - value={searchTerm}: liga o valor do campo à variável de estado "searchTerm" (controlado pelo componente pai)
       - onChange: atualiza o estado "searchTerm" cada vez que o utilizador digita algo, usando a função recebida por props*/}
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Pesquisar artigos..."
-          value={tempSearchTerm}
-          onChange={(e) => setTempSearchTerm(e.target.value)}
-        />
-        <button className="search-button" onClick={handleSearchClick}
+        <div className="search-input-wrapper">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Pesquisar artigos..."
+            value={tempSearchTerm}
+            onChange={(e) => setTempSearchTerm(e.target.value)}
+            maxLength={30}
+          />
+
+          {/* Exibe um contador de caracteres apenas quando existe texto na caixa de pesquisa */}
+          {tempSearchTerm.length > 0 && (
+            <div className="char-counter">
+              {tempSearchTerm.length}/30 {/* Mostra quantos caracteres foram digitados de um máximo de 30 */}
+            </div>
+          )}
+          {/* Exibe um ícone "X" para limpar a pesquisa apenas quando existe texto na caixa */}
+          {tempSearchTerm && (
+            <FiX
+              className="clear-icon"
+              onClick={handleClear}
+              title="Limpar pesquisa"
+            />
+          )}
+        </div>
+        <button
+          className="search-button"
+          onClick={handleSearchClick}
           type="button">
-          Pesquisar
+          Pesquisar {/* Texto do botão */}
         </button>
       </div>
 
-      {/*Comentário JavaScript XML que indica o início da secção que mostra as categorias disponíveis*/}
       {/* Secção de categorias */}
       {/*Contentor principal que agrupa todas as categorias, com a classe "categories" para estilização*/}
       <div className="categories-carousel">
@@ -285,8 +355,6 @@ const MainContent = ({
         </button>
       </div>
 
-
-      {/* Comentário JavaScript XML que indica o início da secção que mostra os artigos recente*/}
       {/* Secção de artigos recentes */}
       {/* Contentor principal da secção de artigos recentes, com a classe "recent-section" para estilização*/}
       <div className="recent-section">
@@ -302,39 +370,46 @@ const MainContent = ({
         <div className="recent-items">
           {/*Utiliza o método map para iterar sobre o array de artigos filtrados e criar um elemento para cada artigo
         // A arrow function recebe cada objeto "artigo" e gera um elemento JSX para ele*/}
+          {/* Mapeia os artigos da página atual para criar um componente para cada um */}
           {currentArticles.map((artigo) => (
             <MemoizedArticle
               // Cria um cartão para cada artigo, com uma chave única baseada no ID do artigo e a classe "item-card"
               key={artigo.id}
-              artigo={artigo}
-              userId={userId}
+              artigo={artigo} // Passa o objeto artigo completo para o componente
+              userId={userId} // Passa o ID do utilizador atual para verificar permissões
+              onEditClick={onEditClick} // Função para lidar com a edição do artigo
+              onMessageClick={onMessageClick} // Função para enviar mensagem ao autor do artigo
+              onArticleClick={onArticleClick} // Função para ver detalhes do artigo
             />
           ))}
         </div>
 
         <div className="pagination">
+          {/* Botão para voltar à página anterior */}
           <button
             className="page-button"
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}  // Reduz a página atual, mas não permite valor menor que 1
+            disabled={currentPage === 1}  // Desativa o botão quando já estamos na primeira página
           >
             Anterior
           </button>
 
+          {/* Cria botões para cada página disponível */}
           {[...Array(totalPages)].map((_, i) => (
             <button
-              key={i + 1}
-              className={`page-button ${currentPage === i + 1 ? 'active' : ''}`}
-              onClick={() => setCurrentPage(i + 1)}
+              key={i + 1}  // Chave única para cada botão de página
+              className={`page-button ${currentPage === i + 1 ? 'active' : ''}`}  // Adiciona classe 'active' ao botão da página atual
+              onClick={() => setCurrentPage(i + 1)} // Define a página correspondente ao botão quando clicado
             >
               {i + 1}
             </button>
           ))}
 
+          {/* Botão para avançar para a próxima página */}
           <button
             className="page-button"
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}  // Aumenta a página atual, mas não ultrapassa o total de páginas
+            disabled={currentPage === totalPages} // Desativa o botão quando já estamos na última página
           >
             Próxima
           </button>
@@ -352,13 +427,15 @@ function App() {
   const [searchTerm, setSearchTerm] = useState(''); // Cria um estado para o termo de pesquisa, inicializado como uma string vazia
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Cria um estado para controlar se o utilizador está autenticado, inicializado como falso
   const [userTypeId, setUserTypeId] = useState(''); // Cria um estado para armazenar o tipo de utilizador, inicializado como uma string vazia
-  const [showUserModal, setShowUserModal] = useState(false);
-  const [userId, setUserId] = useState('');
-  const [showCreateArticle, setShowCreateArticle] = useState(false);
-  const [showMessages, setShowMessages] = useState(false);
-  const [selectedRecipient, setSelectedRecipient] = useState(null);
-  
-  // Função para carregar dados da API (loadData) - Define uma função para obter dados de artigos e categorias da API
+  const [showUserModal, setShowUserModal] = useState(false); // Estado para controlar a visibilidade do modal de utilizador
+  const [userId, setUserId] = useState(''); // Estado para armazenar o ID do utilizador atual
+  const [showCreateArticle, setShowCreateArticle] = useState(false); // Estado para controlar a visibilidade do formulário de criação de artigos
+  const [showMessages, setShowMessages] = useState(false);  // Estado para armazenar o destinatário selecionado para envio de mensagem
+  const [selectedRecipient, setSelectedRecipient] = useState(null);  // Estado para armazenar o destinatário selecionado para envio de mensagem
+  const [showSendMessage, setShowSendMessage] = useState(false);   // Estado para controlar a visibilidade do formulário de envio de mensagens
+  const [editingArticle, setEditingArticle] = useState(null); // Estado para armazenar o artigo que está a ser editado
+  const [selectedArticle, setSelectedArticle] = useState(null); // Estado para armazenar o artigo selecionado para visualização detalhada
+
   const loadData = useCallback(async () => {
     try {
       // Utiliza Promise.all (esta técnica permite fazer múltiplos pedidos à API em paralelo), neste caso duas chamadas á API em paralelo e aguardar que ambas terminem
@@ -434,9 +511,10 @@ function App() {
     try {
       // Faz um pedido GET à API com o termo de pesquisa como parâmetro
       const response = await api.get('/artigos', {
-        params: {  
+        params: {
           include: ['fotos', 'categoria'],
-          titulo: term },
+          titulo: term
+        },
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       // Atualiza o estado dos artigos com os resultados da pesquisa
@@ -451,7 +529,12 @@ function App() {
     <div className="App">
       {/* Cabeçalho da aplicação - Define a estrutura do cabeçalho da aplicação */}
       <header className="header">
-        <div className="header-title">IPT Sustentável</div>
+
+        <div className="header-left">
+          <img src="./ipt.png" className="header-logo" alt="IPT Logo" />
+          <div className="header-title">IPT Sustentável</div>
+        </div>
+
         <div className="header-icons">
           {isAuthenticated && (
             <>
@@ -459,11 +542,11 @@ function App() {
               <FiBell className="icon" title="Notificações" />
               {userTypeId === '2' && (
                 <FiSettings
-                  className="icon"                  
+                  className="icon"
                   title="Backoffice"
                 />
               )}
-              
+
               <FiMessageCircle className="icon" onClick={() => setShowMessages(true)} />
               <FiPlus className="icon" onClick={() => setShowCreateArticle(true)} />
               <FiUser className="icon" onClick={() => setShowUserModal(true)} />
@@ -486,34 +569,72 @@ function App() {
           artigos={artigos}
           userId={localStorage.getItem('userId')}
           onSearch={handleSearch}
+          onEditClick={setEditingArticle}
+          onArticleClick={(artigo) => setSelectedArticle(artigo)}
+          onMessageClick={(userId) => {
+            setSelectedRecipient(userId);
+            setShowSendMessage(true);
+          }}
         />
       ) : (
         <LoginForm onLogin={handleLogin} />
       )}
 
+      {/* Modal para gestão de dados do utilizador - mostrado apenas quando showUserModal*/}
       {showUserModal && (
         <UserModal
-          userId={userId}
-          token={localStorage.getItem('token')}
-          onClose={() => setShowUserModal(false)}
-          onUpdate={(updatedData) => console.log('Dados atualizados:', updatedData)}
+          userId={userId} // ID do utilizador atual
+          token={localStorage.getItem('token')}  // Token de autenticação obtido do armazenamento local
+          onClose={() => setShowUserModal(false)}  // Função para fechar o modal
+          onUpdate={(updatedData) => console.log('Dados atualizados:', updatedData)}  // Função de callback quando os dados são atualizados
         />
       )}
 
+      {/* Modal para visualização de mensagens - mostrado apenas quando showMessages é verdadeiro */}
       {showMessages && (
         <MessagesModal
           onClose={() => {
-            setShowMessages(false);
-            setSelectedRecipient(null);
+            setShowMessages(false);  // Fecha o modal de mensagens
+            setSelectedRecipient(null); // Limpa o destinatário selecionado
           }}
-          usuarioLogadoId={Number(userId)}
+          usuarioLogadoId={Number(userId)}  // ID do utilizador como número (convertido de string)
         />
       )}
 
+      {/* Modal para criação de artigos - mostrado apenas quando showCreateArticle é verdadeiro */}
       {showCreateArticle && (
         <CreateArticleModal
-          onClose={() => setShowCreateArticle(false)}
-          userId={userId}
+          onClose={() => setShowCreateArticle(false)}  // Função para fechar o modal
+          userId={userId}  // ID do utilizador criador do artigo
+        />
+      )}
+
+      {/* Modal para envio de mensagens - mostrado apenas quando showSendMessage é verdadeiro */}
+      {showSendMessage && (
+        <SendMessageModal
+          recipientId={selectedRecipient}  // ID do destinatário da mensagem
+          onClose={() => {
+            setShowSendMessage(false); // Fecha o modal de envio de mensagem
+            setSelectedRecipient(null); // Limpa o destinatário selecionado
+          }}
+        />
+      )}
+
+      {/* Modal para edição de artigos - mostrado apenas quando editingArticle tem valor */}
+      {editingArticle && (
+        <EditArticleModal
+          article={editingArticle} // Artigo que está a ser editado
+          categorias={categorias}  // Lista de categorias disponíveis
+          onClose={() => setEditingArticle(null)} // Função para fechar o modal
+          onSave={loadData} // Função para recarregar os dados após guardar
+        />
+      )}
+
+      {/* Modal para visualização detalhada de artigos - mostrado apenas quando selectedArticle tem valor */}
+      {selectedArticle && (
+        <ArticleDetailModal
+          article={selectedArticle}  // Artigo selecionado para visualização
+          onClose={() => setSelectedArticle(null)} // Função para fechar o modal
         />
       )}
 
