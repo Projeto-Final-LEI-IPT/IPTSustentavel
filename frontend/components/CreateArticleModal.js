@@ -10,7 +10,7 @@ const CreateArticleModal = ({ onClose, userId }) => {
     titulo: '',
     descricao: '',
     categoria_id: '',
-    estado: 'NOVO',
+    estado: 'Novo',
     fotos: []
   });
 
@@ -188,8 +188,8 @@ const CreateArticleModal = ({ onClose, userId }) => {
                         className="article-select"
                         required
                       >
-                        <option value="NOVO">Novo</option>
-                        <option value="USADO">Usado</option>
+                        <option value="Novo">Novo</option>
+                        <option value="Usado">Usado</option>
                       </select>
                     </div>
                   </div>
