@@ -56,7 +56,7 @@ const EditArticleModal = ({ article, categorias, onClose, onSave }) => {
   // Estado para fotos já existentes no servidor
   const [existingPhotos, setExistingPhotos] = useState([]);
   // URL da imagem principal selecionada
-  const [selectedMainImageUrl, setSelectedMainImageUrl] = useState('');
+  const [selectedMainImageUrl, setSelectedMainImageUrl] = useState(null);
   // Carrega a imagem principal
   const mainImageUrl = useImageLoader(selectedMainImageUrl);
   // Calcula espaços disponíveis para fotos (máximo 5)
@@ -83,7 +83,7 @@ const EditArticleModal = ({ article, categorias, onClose, onSave }) => {
       // Define fotos existentes ou array vazio se não houver
       setExistingPhotos(article.fotos || []);
       // Define primeira foto como principal, se existir
-      setSelectedMainImageUrl(article.fotos[0]?.caminho_foto || '');
+      setSelectedMainImageUrl(article.fotos[0]?.caminho_foto || null);
     }
   }, [article]);
 
@@ -93,7 +93,7 @@ const EditArticleModal = ({ article, categorias, onClose, onSave }) => {
       uploadedFiles.some(file => file.preview === selectedMainImageUrl);
     // Se a imagem principal atual não existir e houver outras fotos disponíveis, escolher uma nova
     if (!exists && (existingPhotos.length > 0 || uploadedFiles.length > 0)) {
-      const newSelected = existingPhotos[0]?.caminho_foto || uploadedFiles[0]?.preview || '';
+      const newSelected = existingPhotos[0]?.caminho_foto || uploadedFiles[0]?.preview || null;
       setSelectedMainImageUrl(newSelected);
     }
   }, [existingPhotos, uploadedFiles]);
