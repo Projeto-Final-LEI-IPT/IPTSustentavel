@@ -606,6 +606,7 @@ function App() {
         <CreateArticleModal
           onClose={() => setShowCreateArticle(false)}  // Função para fechar o modal
           userId={userId}  // ID do utilizador criador do artigo
+          onArticleCreated={loadData}
         />
       )}
 
