@@ -4,7 +4,7 @@ import '../styles/CreateArticleModal.css';
 
 // Componente modal para criação de novos artigos
 // Recebe como props a função para fechar o modal e o ID do utilizador
-const CreateArticleModal = ({ onClose, userId }) => {
+const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
   // Estado para armazenar os dados do formulário
   const [formData, setFormData] = useState({
     titulo: '',
@@ -115,6 +115,7 @@ const CreateArticleModal = ({ onClose, userId }) => {
       // Envia os dados do artigo para a API
       await api.post('/artigos', artigoPayload);
       onClose();
+      if (onArticleCreated) onArticleCreated(); 
     } catch (error) {
       console.error('Erro detalhado:', error.response?.data);
       alert('Erro ao criar artigo: ' + (error.response?.data?.message || error.message));
