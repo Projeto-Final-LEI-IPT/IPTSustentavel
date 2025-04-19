@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 
 const useImageLoader = (imagePath) => {
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
     let objectUrl = '';
@@ -10,7 +10,11 @@ const useImageLoader = (imagePath) => {
 
     const loadImage = async () => {
       try {
-        if (!imagePath) return;
+        
+        if (!imagePath) {
+          if (isMounted) setImageUrl(null);
+          return;
+        }
         
         const response = await api.get(`/pictures/${imagePath}`, {
           responseType: 'blob',
@@ -24,6 +28,7 @@ const useImageLoader = (imagePath) => {
           setImageUrl(objectUrl);
         }
       } catch (error) {
+        if (isMounted) setImageUrl(null);
         console.error('Erro ao carregar imagem:', error);
       }
     };
