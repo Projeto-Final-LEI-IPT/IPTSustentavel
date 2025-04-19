@@ -164,7 +164,7 @@ const MessagesModal = ({ onClose, usuarioLogadoId }) => {
     };
 
     fetchConversations();
-  }, [usuarioLogadoId]);
+  }, [utilizadorLogadoId]);
 
   // Função para enviar uma nova mensagem
   const handleSendMessage = async () => {
@@ -172,7 +172,7 @@ const MessagesModal = ({ onClose, usuarioLogadoId }) => {
       if (!newMessage.trim()) throw new Error('Digite uma mensagem');
       if (!selectedConversation) throw new Error('Selecione uma conversa');
       
-      validateIds(usuarioLogadoId, selectedConversation.user.id);
+      validateIds(utilizadorLogadoId, selectedConversation.user.id);
 
       // Envia a mensagem para a API
       const token = localStorage.getItem('token');
@@ -184,7 +184,7 @@ const MessagesModal = ({ onClose, usuarioLogadoId }) => {
         },
         body: JSON.stringify({
           conteudo: newMessage.trim(),
-          remetente_id: usuarioLogadoId,
+          remetente_id: utilizadorLogadoId,
           destinatario_id: selectedConversation.user.id
         })
       });
