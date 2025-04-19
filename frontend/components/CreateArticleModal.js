@@ -32,14 +32,14 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
         alert('Erro ao carregar categorias');
       }
     };
-    
+
     loadCategories();
   }, []);
 
   // Função para tratar a mudança de imagens
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Verifica se o número total de imagens não excede o limite de 5
     if (files.length + previewImages.length > 5) {
       alert('Máximo de 5 imagens permitido!');
@@ -51,7 +51,7 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
       url: URL.createObjectURL(file),
       file
     }));
-    
+
     // Atualiza o estado com os novos ficheiros e pré-visualizações
     setSelectedFiles(prev => [...prev, ...files]);
     setPreviewImages(prev => [...prev, ...newPreviews]);
@@ -65,26 +65,25 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
   };
 
   // Função para fazer upload das imagens para o servidor
-  const uploadImages = async () => {
-    const uploadedImages = [];
-    
-    // Itera sobre cada ficheiro e faz o upload individualmente
-    for (const file of selectedFiles) {
+  const uploadImages = async (artigoId) => {
+
+    try {
       const formPayload = new FormData();
-      formPayload.append('foto', file);
-      
-      try {
-        // Envia o ficheiro para a API
-        const response = await api.post('/pictures', formPayload);
-        uploadedImages.push(response.data.caminho);
-      } catch (error) {
-        console.error('Erro no upload da imagem:', error);
-        alert('Erro ao enviar imagens');
-      }
+      selectedFiles.forEach((file) => {
+        formPayload.append('fotos', file);
+      });
+
+      const response = await api.post(`/artigos/${artigoId}/fotos`, formPayload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data.fotos.map(foto => foto.caminho_foto);
+    } catch (error) {
+      console.error('Erro no upload da imagem:', error);
+      //alert('Erro ao enviar imagens');
+      return [];
     }
-    
-    // Retorna as URLs das imagens carregadas
-    return uploadedImages;
   };
 
   // Função para tratar o envio do formulário
@@ -98,24 +97,29 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
       setLoading(false);
       return;
     }
-
     try {
-      // Faz o upload das imagens primeiro
-      const imagensUpload = await uploadImages();
-      
-      // Prepara o payload com todos os dados do artigo
-      const artigoPayload = {
+      const response = await api.post('/artigos', {
         ...formData,
         categoria_id: Number(formData.categoria_id),
         utilizador_id: userId,
         data_publicacao: new Date(),
-        fotos: imagensUpload
-      };
+        fotos: []
+      });
 
-      // Envia os dados do artigo para a API
-      await api.post('/artigos', artigoPayload);
+      const novoArtigoId = response.data.id;
+      if (!novoArtigoId) {
+        throw new Error("ID do artigo não foi gerado pelo servidor.");
+      }
+
+      try {
+        if (selectedFiles.length > 0) {
+        await uploadImages(novoArtigoId);}
+      } catch (uploadError) {
+        console.error('Erro no upload de imagens:', uploadError);
+        alert('Artigo criado, mas houve um erro ao enviar as imagens.');
+      }
       onClose();
-      if (onArticleCreated) onArticleCreated(); 
+      if (onArticleCreated) onArticleCreated(); // Dispara o refresh
     } catch (error) {
       console.error('Erro detalhado:', error.response?.data);
       alert('Erro ao criar artigo: ' + (error.response?.data?.message || error.message));
@@ -129,14 +133,14 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
     <div className="user-modal-overlay">
       <div className="user-modal article-modal">
         {/* Botão para fechar o modal */}
-        <button 
-          className="close-button" 
-          onClick={onClose} 
+        <button
+          className="close-button"
+          onClick={onClose}
           aria-label="Fechar modal"
         >&times;</button>
-        
+
         <h2>Criar Novo Artigo</h2>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-container">
             {/* Coluna Esquerda - Formulário */}
@@ -145,13 +149,13 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
                 <div className="form-row">
                   {/* Campo de título com contador de caracteres restantes */}
                   <div className="form-group title-group">
-                  <label>Título*  ({25 - formData.titulo.length} restantes)</label>
+                    <label>Título*  ({25 - formData.titulo.length} restantes)</label>
                     <input
                       type="text"
                       value={formData.titulo}
                       onChange={(e) => {
                         if (e.target.value.length <= 25) {
-                          setFormData({...formData, titulo: e.target.value})
+                          setFormData({ ...formData, titulo: e.target.value })
                         }
                       }}
                       placeholder="Ex: Sofá em couro sintético"
@@ -167,7 +171,7 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
                       <label>Categoria*</label>
                       <select
                         value={formData.categoria_id}
-                        onChange={(e) => setFormData({...formData, categoria_id: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
                         className="article-select"
                         required
                       >
@@ -185,7 +189,7 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
                       <label>Estado*</label>
                       <select
                         value={formData.estado}
-                        onChange={(e) => setFormData({...formData, estado: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
                         className="article-select"
                         required
                       >
@@ -199,23 +203,23 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
                 {/* Campo de descrição com contador de caracteres restantes */}
                 <div className="form-group full-width">
                   <label>Descrição ({100 - formData.descricao.length} restantes)</label>
-                 <div>
-                  <textarea
-                    value={formData.descricao}
-                    onChange={(e) => {
-                      const text = e.target.value.replace(/[\r\n]/g, ' ');
-                      if (text.length <= 100) {
-                        setFormData({...formData, descricao: text})
-                      }
-                    }}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') e.preventDefault();
-                    }}
-                    placeholder="Descreva detalhes do artigo (máx. 100 caracteres)"
-                    className="article-textarea"
-                    rows="3"
-                    maxLength="100"
-                  />
+                  <div>
+                    <textarea
+                      value={formData.descricao}
+                      onChange={(e) => {
+                        const text = e.target.value.replace(/[\r\n]/g, ' ');
+                        if (text.length <= 100) {
+                          setFormData({ ...formData, descricao: text })
+                        }
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') e.preventDefault();
+                      }}
+                      placeholder="Descreva detalhes do artigo (máx. 100 caracteres)"
+                      className="article-textarea"
+                      rows="3"
+                      maxLength="100"
+                    />
                   </div>
                 </div>
               </div>
@@ -237,8 +241,8 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
                     id="fileInput"
                   />
                   {/* Label personalizado para seleção de ficheiros */}
-                  <label 
-                    htmlFor="fileInput" 
+                  <label
+                    htmlFor="fileInput"
                     className="file-upload-label"
                     style={{
                       display: 'flex',
@@ -250,15 +254,15 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
                     }}
                   >
                     {/* Ícone de adição */}
-                    <svg 
-                      width="40" 
-                      height="40" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="#007bff" 
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#007bff"
                       strokeWidth="2"
                     >
-                      <path d="M12 5v14M5 12h14"/>
+                      <path d="M12 5v14M5 12h14" />
                     </svg>
                     <p style={{ marginTop: '0.5rem', color: '#666', textAlign: 'center' }}>
                       Arraste imagens ou clique para enviar
@@ -269,8 +273,8 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
                   <div className="image-previews">
                     {previewImages.map((preview, index) => (
                       <div key={index} className="image-preview">
-                        <img 
-                          src={preview.url} 
+                        <img
+                          src={preview.url}
                           alt={`Preview ${index}`}
                           onLoad={() => URL.revokeObjectURL(preview.url)}
                         />
@@ -292,17 +296,17 @@ const CreateArticleModal = ({ onClose, userId, onArticleCreated }) => {
               {/* Botões na coluna direita */}
               <div className="modal-actions">
                 {/* Botão para cancelar e fechar o modal */}
-                <button 
-                  type="button" 
-                  className="btn-cancel" 
+                <button
+                  type="button"
+                  className="btn-cancel"
                   onClick={onClose}
                   disabled={loading}
                 >
                   Cancelar
                 </button>
                 {/* Botão para submeter o formulário */}
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn-save"
                   disabled={loading}
                 >
