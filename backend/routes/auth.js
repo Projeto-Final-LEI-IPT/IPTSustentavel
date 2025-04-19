@@ -33,7 +33,8 @@ router.post('/login', async (req, res) => {
     // Retorna o token gerado
     res.json({
       token,
-      userId: user.id
+      userId: user.id,
+      userTypeId: user.tipo_utilizador_id
     });
   } catch (error) {
     // Em caso de erro no servidor, retorna status 500
