@@ -8,13 +8,21 @@ const router = express.Router();
 const authenticateToken = require('../middleware/auth');
 // Importa os modelos da base de dados
 const db = require('../models');
+const { Op } = require('sequelize');
 
 // GET todas as mensagens
 // Rota para obter todas as mensagens (requer autenticação)
 router.get('/', authenticateToken, async (req, res) => {
   try {
+    const userId = req.user.id; 
     // Procura todas as mensagens incluindo dados do remetente e destinatário
     const mensagens = await db.Mensagem.findAll({
+     where: {
+        [db.Sequelize.Op.or]: [
+          { remetente_id: userId },
+          { destinatario_id: userId }
+        ]
+      },      
       include: [
         {
           model: db.Utilizador, // Inclui dados do remetente
