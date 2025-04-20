@@ -547,9 +547,9 @@ function App() {
                 />
               )}
 
-              <FiMessageCircle className="icon" onClick={() => setShowMessages(true)} />
-              <FiPlus className="icon" onClick={() => setShowCreateArticle(true)} />
-              <FiUser className="icon" onClick={() => setShowUserModal(true)} />
+              <FiMessageCircle className="icon" onClick={() => setShowMessages(true)} title="Mensagens" />
+              <FiPlus className="icon" onClick={() => setShowCreateArticle(true)}  title="Criar Artigo"  />
+              <FiUser className="icon" onClick={() => setShowUserModal(true)}  title="Perfil"/>
               <FiLogOut
                 className="icon"
                 onClick={handleLogout}
