@@ -163,5 +163,50 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     });
   }
 });
+// GET contagem de mensagens não lidas
+router.get('/nao-lidas/contagem', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    // Conta mensagens onde o utilizador é destinatário e a mensagem não foi lida
+    const count = await db.Mensagem.count({
+      where: {
+        destinatario_id: userId,
+        lida: false
+      }
+    });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).send({
+      message: error.message || "Erro ao obter contagem de mensagens não lidas"
+    });
+  }
+});
+
+// PUT marcar mensagens como lidas
+router.put('/marcar-lidas/:conversaComId', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const conversaComId = req.params.conversaComId;
+    
+    // Atualiza todas as mensagens não lidas dessa conversa
+    const [numLinhasAfetadas] = await db.Mensagem.update(
+      { lida: true },
+      {
+        where: {
+          destinatario_id: userId,
+          remetente_id: conversaComId,
+          lida: false
+        }
+      }
+    );
+    
+    res.json({ atualizadas: numLinhasAfetadas });
+  } catch (error) {
+    res.status(500).send({
+      message: error.message || "Erro ao marcar mensagens como lidas"
+    });
+  }
+});
+
 // Exporta o router para uso em outros ficheiros
 module.exports = router;
