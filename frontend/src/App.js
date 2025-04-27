@@ -478,6 +478,7 @@ function App() {
   const [editingArticle, setEditingArticle] = useState(null); // Estado para armazenar o artigo que está a ser editado
   const [selectedArticle, setSelectedArticle] = useState(null); // Estado para armazenar o artigo selecionado para visualização detalhada
   const [selectedArticleTitle, setSelectedArticleTitle] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   const loadData = useCallback(async () => {
     try {
@@ -512,6 +513,24 @@ function App() {
     }
   }, [isAuthenticated, loadData]);
 
+  {/* Define uma função memorizada que verifica a quantidade de mensagens não lidas do utilizador autenticado, fazendo uma chamada à API com o token de autenticação,
+   e atualiza o estado unreadCount com o número recebido*/}
+  const fetchUnreadCount = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const response = await api.get('/mensagens/nao-lidas/contagem', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (response.data && typeof response.data.count === 'number') {
+        setUnreadCount(response.data.count);
+      }
+    } catch (error) {
+      console.error('Erro ao procurar mensagens não lidas:', error);
+    }
+  }, [isAuthenticated]);
+  
   // Função para processar o login - Define uma função assíncrona que trata do processo de login
   const handleLogin = async (credentials) => {
     try {
@@ -589,8 +608,11 @@ function App() {
                   title="Backoffice"
                 />
               )}
-
-              <FiMessageCircle className="icon" onClick={() => setShowMessages(true)} title="Mensagens" />
+              <div className="message-icon-container">
+                <FiMessageCircle className="icon" onClick={() => setShowMessages(true)} title="Mensagens" /> {unreadCount > 0 && (
+                  <span className="unread-badge-main">{unreadCount}</span>
+                )}
+              </div>
               <FiPlus className="icon" onClick={() => setShowCreateArticle(true)}  title="Criar Artigo"  />
               <FiUser className="icon" onClick={() => setShowUserModal(true)}  title="Perfil"/>
               <FiLogOut
@@ -641,7 +663,8 @@ function App() {
             setShowMessages(false);  // Fecha o modal de mensagens
             setSelectedRecipient(null); // Limpa o destinatário selecionado
           }}
-          usuarioLogadoId={Number(userId)}  // ID do utilizador como número (convertido de string)
+          utilizadorLogadoId={Number(userId)}  // ID do utilizador como número (convertido de string)
+          onMessagesRead={fetchUnreadCount}
         />
       )}
 
