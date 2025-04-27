@@ -460,3 +460,9 @@ body {
   border-color: #388E3C;
 }
   
+.message-icon-container {
+  margin-bottom: -3px; 
+  position: absolute;
+  display: inline-flex;  /* Mantém o mesmo comportamento dos ícones */
+  align-items: center;   /* Centraliza o conteúdo verticalmente */
+}
