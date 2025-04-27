@@ -7,7 +7,7 @@ import api from '../services/api';
 import '../styles/SendMessageModal.css';
 
 // Componente funcional que recebe como props o ID do destinatário e função de fecho
-const SendMessageModal = ({ recipientId, onClose }) => {
+const SendMessageModal = ({ recipientId, articleTitle, onClose }) => {
   // Estado para armazenar o conteúdo da mensagem
   const [message, setMessage] = useState('');
   // Constante que define o número máximo de caracteres permitidos
@@ -16,9 +16,11 @@ const SendMessageModal = ({ recipientId, onClose }) => {
   // Função para enviar a mensagem para o servidor
   const handleSend = async () => {
     try {
+      // Formata a mensagem com o título do artigo seguido por "|" como separador
+      const formattedMessage = articleTitle ? `Artigo: ${articleTitle} | ${message}` : message;
       // Chamada à API para guardar a mensagem na base de dados
       await api.post('/mensagens', {
-        conteudo: message,
+        conteudo: formattedMessage,
         remetente_id: localStorage.getItem('userId'), // ID do utilizador atual
         destinatario_id: recipientId, // ID do destinatário
         lida: false // Inicialmente a mensagem não foi lida

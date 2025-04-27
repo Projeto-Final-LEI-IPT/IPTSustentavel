@@ -139,7 +139,7 @@ const MemoizedArticle = memo(({ artigo, userId, onEditClick, onMessageClick, onA
           {artigo.utilizador?.id.toString() !== userId && (
             <FiMessageCircle
               className="icon message-icon-title"
-              onClick={() => onMessageClick(artigo.utilizador?.id)}
+              onClick={() => onMessageClick(artigo.utilizador?.id, artigo.titulo)} // Passa ID e título
               title="Enviar mensagem"
             />
           )}
@@ -149,6 +149,8 @@ const MemoizedArticle = memo(({ artigo, userId, onEditClick, onMessageClick, onA
       <p>Estado: {artigo.estado || 'Indisponível'}</p>
       {/* Informação sobre a categoria do artigo (com valor predefinido) */}
       <p>Categoria: {artigo.categoria?.nome || 'Sem categoria'}</p>
+      {/* Informação sobre a disponibilidade do artigo */}
+      <p>Disponibilidade: {artigo.disponivel ? 'Disponível' : 'Indisponível'}</p>
       <div className="item-actions">
         {/* Botão para ver mais detalhes sobre o artigo */}
         <button
@@ -193,7 +195,9 @@ const MainContent = ({
   const [isSearching, setIsSearching] = useState(false);
   // Estado para controlar qual grupo de categorias está a ser exibido
   const [groupIndex, setGroupIndex] = useState(0);
-
+  // Estado para controlar qual grupo de condição(novo/usado) está a ser exibido
+  const [selectedCondition, setSelectedCondition] = useState(null);
+  
   // Constantes de configuração
   const itemsPerPage = 10;      // Número de itens a mostrar por página
   const maxCategories = 15;     // Número máximo de categorias a serem consideradas
@@ -205,7 +209,16 @@ const MainContent = ({
     categorias.slice(0, maxCategories),
     [categorias]
   );
-
+  
+  // Define uma função memorizada 'handleConditionClick' que alterna o estado da 
+  // condição selecionada (limpa se já estiver selecionada ou define a nova condição), 
+  // reinicia a página para 1 e desativa a pesquisa
+  const handleConditionClick = useCallback((condition) => {
+    setSelectedCondition(prev => prev === condition ? null : condition);
+    setCurrentPage(1);
+    setIsSearching(false);
+  }, []);
+  
   // Função para limpar os termos de pesquisa e reiniciar o estado de pesquisa
   // useCallback evita recriações desnecessárias da função
   const handleClear = useCallback(() => {
@@ -225,9 +238,10 @@ const MainContent = ({
   const filteredArtigos = useMemo(() =>
     artigos.filter(artigo =>
       (!selectedCategory || artigo.categoria?.id === selectedCategory) &&
+      (!selectedCondition || artigo.estado === selectedCondition) && // Filtra por condição
       artigo.titulo.toLowerCase().includes(searchTerm.toLowerCase())
     ),
-    [artigos, selectedCategory, searchTerm]
+    [artigos, selectedCategory, selectedCondition, searchTerm]
   );
 
   // Função para lidar com o clique nas categorias
@@ -355,16 +369,44 @@ const MainContent = ({
         </button>
       </div>
 
+       {/* Renderiza um componente de filtro com dois botões ('Novo' e 'Usado') que, 
+      ao serem clicados, aplicam uma classe 'active' ao elemento selecionado e chamam 
+      a função handleConditionClick para atualizar o estado
+      Filtro de condição */}
+      <div className="condition-filter">
+        <div
+          className={`condition-card ${selectedCondition === 'Novo' ? 'active' : ''}`}
+          onClick={() => handleConditionClick('Novo')}
+        >
+          Novo
+        </div>
+        <div
+          className={`condition-card ${selectedCondition === 'Usado' ? 'active' : ''}`}
+          onClick={() => handleConditionClick('Usado')}
+        >
+          Usado
+        </div>
+      </div>
+
       {/* Secção de artigos recentes */}
       {/* Contentor principal da secção de artigos recentes, com a classe "recent-section" para estilização*/}
       <div className="recent-section">
-        {/* Título da secção de artigos recentes*/}
-        <h2>
-          {isSearching || searchTerm ?
-            `Resultados para "${searchTerm}"` :
-            'Artigos Recentes'
-          }
-        </h2>
+      {/* Título da secção de artigos recentes
+       Renderiza um título dinâmico que exibe 'Artigos Recentes' por predefinição, 
+       ou mostra os resultados da pesquisa combinando o termo pesquisado, 
+       categoria selecionada e condição do artigo, utilizando concatenação de strings condicional*/}
+       <h2>
+         {isSearching || searchTerm || selectedCategory || selectedCondition ?
+           `Resultados ${searchTerm ? `para "${searchTerm}"` : ""
+           }${selectedCategory ?
+             `${searchTerm ? " na categoria " : "na categoria "}${categorias.find(cat => cat.id === selectedCategory)?.nome || ""
+             }` : ""
+           }${selectedCondition ?
+             `${searchTerm || selectedCategory ? " com condição " : "com condição "}${selectedCondition}` : ""
+           }` :
+           'Artigos Recentes'
+         }
+       </h2>
 
         {/* Contentor que agrupa todos os cartões de artigos, com a classe "recent-items" para estilização*/}
         <div className="recent-items">
@@ -435,7 +477,9 @@ function App() {
   const [showSendMessage, setShowSendMessage] = useState(false);   // Estado para controlar a visibilidade do formulário de envio de mensagens
   const [editingArticle, setEditingArticle] = useState(null); // Estado para armazenar o artigo que está a ser editado
   const [selectedArticle, setSelectedArticle] = useState(null); // Estado para armazenar o artigo selecionado para visualização detalhada
-
+  const [selectedArticleTitle, setSelectedArticleTitle] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  
   const loadData = useCallback(async () => {
     try {
       // Utiliza Promise.all (esta técnica permite fazer múltiplos pedidos à API em paralelo), neste caso duas chamadas á API em paralelo e aguardar que ambas terminem
@@ -469,6 +513,35 @@ function App() {
     }
   }, [isAuthenticated, loadData]);
 
+  {/* Define uma função memorizada que verifica a quantidade de mensagens não lidas do utilizador autenticado, fazendo uma chamada à API com o token de autenticação,
+   e atualiza o estado unreadCount com o número recebido*/}
+  const fetchUnreadCount = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const response = await api.get('/mensagens/nao-lidas/contagem', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (response.data && typeof response.data.count === 'number') {
+        setUnreadCount(response.data.count);
+      }
+    } catch (error) {
+      console.error('Erro ao procurar mensagens não lidas:', error);
+    }
+  }, [isAuthenticated]);
+
+ // Use useEffect para chamar a função quando o componente for montado
+  useEffect(() => {
+    fetchUnreadCount();
+
+    // Configure um intervalo para verificar mensagens não lidas a cada minuto
+    const intervalId = setInterval(fetchUnreadCount, 60000);
+
+    // Limpe o intervalo quando o componente for desmontado
+    return () => clearInterval(intervalId);
+  }, [fetchUnreadCount]);
+ 
   // Função para processar o login - Define uma função assíncrona que trata do processo de login
   const handleLogin = async (credentials) => {
     try {
@@ -546,8 +619,11 @@ function App() {
                   title="Backoffice"
                 />
               )}
-
-              <FiMessageCircle className="icon" onClick={() => setShowMessages(true)} title="Mensagens" />
+              <div className="message-icon-container">
+                <FiMessageCircle className="icon" onClick={() => setShowMessages(true)} title="Mensagens" /> {unreadCount > 0 && (
+                  <span className="unread-badge-main">{unreadCount}</span>
+                )}
+              </div>
               <FiPlus className="icon" onClick={() => setShowCreateArticle(true)}  title="Criar Artigo"  />
               <FiUser className="icon" onClick={() => setShowUserModal(true)}  title="Perfil"/>
               <FiLogOut
@@ -571,8 +647,9 @@ function App() {
           onSearch={handleSearch}
           onEditClick={setEditingArticle}
           onArticleClick={(artigo) => setSelectedArticle(artigo)}
-          onMessageClick={(userId) => {
+          onMessageClick={(userId, artigo) => {
             setSelectedRecipient(userId);
+            setSelectedArticleTitle(artigo); // Armazena o título do artigo
             setShowSendMessage(true);
           }}
         />
@@ -597,7 +674,8 @@ function App() {
             setShowMessages(false);  // Fecha o modal de mensagens
             setSelectedRecipient(null); // Limpa o destinatário selecionado
           }}
-          usuarioLogadoId={Number(userId)}  // ID do utilizador como número (convertido de string)
+          utilizadorLogadoId={Number(userId)}  // ID do utilizador como número (convertido de string)
+          onMessagesRead={fetchUnreadCount}
         />
       )}
 
@@ -614,9 +692,11 @@ function App() {
       {showSendMessage && (
         <SendMessageModal
           recipientId={selectedRecipient}  // ID do destinatário da mensagem
+          articleTitle={selectedArticleTitle} // Passa o título do artigo para o modal
           onClose={() => {
             setShowSendMessage(false); // Fecha o modal de envio de mensagem
             setSelectedRecipient(null); // Limpa o destinatário selecionado
+            setSelectedArticleTitle(null); // Limpa o título ao fechar
           }}
         />
       )}
