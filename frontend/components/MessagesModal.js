@@ -12,7 +12,7 @@ const formatDate = (dateString) => {
 };
 
 // Componente principal do modal de mensagens
-const MessagesModal = ({ onClose, usuarioLogadoId }) => {
+const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
   // Estado para controlar a conversa selecionada
   const [selectedConversation, setSelectedConversation] = useState(null);
   // Estado para controlar o texto da nova mensagem a ser enviada
@@ -82,6 +82,41 @@ const MessagesModal = ({ onClose, usuarioLogadoId }) => {
     }, []);
   };
 
+ useEffect(() => {
+    // Marca mensagens como lidas quando uma conversa é selecionada
+    const markMessagesAsRead = async () => {
+      if (!selectedConversation) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        await fetch(`http://localhost:3001/api/mensagens/marcar-lidas/${selectedConversation.user.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // Atualiza o contador de mensagens não lidas para zero na conversa selecionada
+        setConversations(prev => prev.map(conv => {
+          if (conv.id === selectedConversation.id) {
+            return { ...conv, unreadCount: 0 };
+          }
+          return conv;
+        }));
+
+        // Se a função onMessagesRead for fornecida, chame-a para atualizar o contador
+        if (onMessagesRead) {
+          onMessagesRead();
+        }
+      } catch (error) {
+        console.error('Erro ao marcar mensagens como lidas:', error);
+      }
+    };
+
+    markMessagesAsRead();
+  }, [selectedConversation]);
+  
   // Efeito para procurar as conversas do utilizador ao carregar o componente
   useEffect(() => {
     const fetchConversations = async () => {
