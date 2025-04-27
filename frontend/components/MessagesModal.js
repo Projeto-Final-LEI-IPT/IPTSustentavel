@@ -142,11 +142,11 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
             if (msg.remetente_id === msg.destinatario.id) return acc;
 
             // Determina se a mensagem foi enviada pelo utilizador logado
-            const isFromLoggedUser = Number(msg.remetente_id) === Number(usuarioLogadoId);
+            const isFromLoggedUser = Number(msg.remetente_id) === Number(utilizadorLogadoId);
             // Identifica o outro interveniente na conversa
             const partner = isFromLoggedUser ? msg.destinatario : msg.remetente;
             // Ignora mensagens para si mesmo (verificação adicional)
-            if (partner.id === usuarioLogadoId) return acc;
+            if (partner.id === utilizadorLogadoId) return acc;
 
             const partnerId = partner.id;
             // Cria uma nova entrada para o parceiro se ainda não existir
@@ -169,9 +169,13 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
               data: msg.data,
               time: new Date(msg.data).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               isSent: isFromLoggedUser
+              lida: msg.lida || false  // Adicionamos o status de leitura
             });
 
-            return acc;
+            // Contabiliza mensagens não lidas
+            if (!isFromLoggedUser && !msg.lida) {
+              acc[partnerId].unreadCount = (acc[partnerId].unreadCount || 0) + 1;
+            }
           } catch (error) {
             console.error('Erro ao processar mensagem:', error);
             return acc;
@@ -320,11 +324,23 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
                     
                     // Renderiza bolhas de mensagem
                     return (
-                      <div
+                <div
                         key={item.id}
                         className={`message-bubble ${item.isSent ? 'sent' : 'received'}`}
                       >
-                        {item.content && <p>{item.content}</p>}
+                        {item.content && (
+                          <div className="message-content">
+                            {item.content.includes('|') ? (
+                              <>
+                                <div className="article-title">{item.content.split('|')[0].trim()}</div>
+                                <div className="message-spacer"></div>
+                                <div className="message-text">{item.content.split('|')[1].trim()}</div>
+                              </>
+                            ) : (
+                              <p>{item.content}</p>
+                            )}
+                          </div>
+                        )}
                         <span>{item.time}</span>
                       </div>
                     );
@@ -340,7 +356,14 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Escreva uma mensagem..."
                   />
-                  <button onClick={handleSendMessage}>Enviar</button>
+                   <button
+                    className="send-button"
+                    onClick={handleSendMessage}
+                    disabled={!newMessage.trim()}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             )}
@@ -350,5 +373,28 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
     </div>
   );
 };
+
+{/* Filtra e mapeia as conversas com base na pesquisa */}
+              {conversations
+                .filter(conv => conv.user.nome.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(conversation => (
+                  <div
+                    key={conversation.id}
+                    className={`conversation-item ${selectedConversation?.id === conversation.id ? 'active' : ''}`}
+                    onClick={() => setSelectedConversation(conversation)}
+                  >
+                    <div className="user-avatar">{conversation.user.initials}</div>
+                    <div className="conversation-info">
+                      <p>{conversation.user.nome}</p>
+                      {/* Exibir o badge de mensagens não lidas se houver alguma */}
+                      {conversation.unreadCount > 0 && (
+                        <span className="unread-badge">{conversation.unreadCount}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+
 
 export default MessagesModal;
