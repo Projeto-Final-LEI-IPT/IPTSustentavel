@@ -530,7 +530,18 @@ function App() {
       console.error('Erro ao procurar mensagens não lidas:', error);
     }
   }, [isAuthenticated]);
-  
+
+ // Use useEffect para chamar a função quando o componente for montado
+  useEffect(() => {
+    fetchUnreadCount();
+
+    // Configure um intervalo para verificar mensagens não lidas a cada minuto
+    const intervalId = setInterval(fetchUnreadCount, 60000);
+
+    // Limpe o intervalo quando o componente for desmontado
+    return () => clearInterval(intervalId);
+  }, [fetchUnreadCount]);
+ 
   // Função para processar o login - Define uma função assíncrona que trata do processo de login
   const handleLogin = async (credentials) => {
     try {
