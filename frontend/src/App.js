@@ -193,7 +193,9 @@ const MainContent = ({
   const [isSearching, setIsSearching] = useState(false);
   // Estado para controlar qual grupo de categorias está a ser exibido
   const [groupIndex, setGroupIndex] = useState(0);
-
+  // Estado para controlar qual grupo de condição(novo/usado) está a ser exibido
+  const [selectedCondition, setSelectedCondition] = useState(null);
+  
   // Constantes de configuração
   const itemsPerPage = 10;      // Número de itens a mostrar por página
   const maxCategories = 15;     // Número máximo de categorias a serem consideradas
@@ -205,7 +207,16 @@ const MainContent = ({
     categorias.slice(0, maxCategories),
     [categorias]
   );
-
+  
+  // Define uma função memorizada 'handleConditionClick' que alterna o estado da 
+  // condição selecionada (limpa se já estiver selecionada ou define a nova condição), 
+  // reinicia a página para 1 e desativa a pesquisa
+  const handleConditionClick = useCallback((condition) => {
+    setSelectedCondition(prev => prev === condition ? null : condition);
+    setCurrentPage(1);
+    setIsSearching(false);
+  }, []);
+  
   // Função para limpar os termos de pesquisa e reiniciar o estado de pesquisa
   // useCallback evita recriações desnecessárias da função
   const handleClear = useCallback(() => {
@@ -225,9 +236,10 @@ const MainContent = ({
   const filteredArtigos = useMemo(() =>
     artigos.filter(artigo =>
       (!selectedCategory || artigo.categoria?.id === selectedCategory) &&
+      (!selectedCondition || artigo.estado === selectedCondition) && // Filtra por condição
       artigo.titulo.toLowerCase().includes(searchTerm.toLowerCase())
     ),
-    [artigos, selectedCategory, searchTerm]
+    [artigos, selectedCategory, selectedCondition, searchTerm]
   );
 
   // Função para lidar com o clique nas categorias
@@ -353,6 +365,25 @@ const MainContent = ({
         >
           <FiChevronRight />
         </button>
+      </div>
+
+       {/* Renderiza um componente de filtro com dois botões ('Novo' e 'Usado') que, 
+      ao serem clicados, aplicam uma classe 'active' ao elemento selecionado e chamam 
+      a função handleConditionClick para atualizar o estado
+      Filtro de condição */}
+      <div className="condition-filter">
+        <div
+          className={`condition-card ${selectedCondition === 'Novo' ? 'active' : ''}`}
+          onClick={() => handleConditionClick('Novo')}
+        >
+          Novo
+        </div>
+        <div
+          className={`condition-card ${selectedCondition === 'Usado' ? 'active' : ''}`}
+          onClick={() => handleConditionClick('Usado')}
+        >
+          Usado
+        </div>
       </div>
 
       {/* Secção de artigos recentes */}
