@@ -139,7 +139,7 @@ const MemoizedArticle = memo(({ artigo, userId, onEditClick, onMessageClick, onA
           {artigo.utilizador?.id.toString() !== userId && (
             <FiMessageCircle
               className="icon message-icon-title"
-              onClick={() => onMessageClick(artigo.utilizador?.id)}
+              onClick={() => onMessageClick(artigo.utilizador?.id, artigo.titulo)} // Passa ID e título
               title="Enviar mensagem"
             />
           )}
@@ -435,7 +435,8 @@ function App() {
   const [showSendMessage, setShowSendMessage] = useState(false);   // Estado para controlar a visibilidade do formulário de envio de mensagens
   const [editingArticle, setEditingArticle] = useState(null); // Estado para armazenar o artigo que está a ser editado
   const [selectedArticle, setSelectedArticle] = useState(null); // Estado para armazenar o artigo selecionado para visualização detalhada
-
+  const [selectedArticleTitle, setSelectedArticleTitle] = useState(null);
+  
   const loadData = useCallback(async () => {
     try {
       // Utiliza Promise.all (esta técnica permite fazer múltiplos pedidos à API em paralelo), neste caso duas chamadas á API em paralelo e aguardar que ambas terminem
@@ -571,8 +572,9 @@ function App() {
           onSearch={handleSearch}
           onEditClick={setEditingArticle}
           onArticleClick={(artigo) => setSelectedArticle(artigo)}
-          onMessageClick={(userId) => {
+          onMessageClick={(userId, artigo) => {
             setSelectedRecipient(userId);
+            setSelectedArticleTitle(artigo); // Armazena o título do artigo
             setShowSendMessage(true);
           }}
         />
@@ -614,9 +616,11 @@ function App() {
       {showSendMessage && (
         <SendMessageModal
           recipientId={selectedRecipient}  // ID do destinatário da mensagem
+          articleTitle={selectedArticleTitle} // Passa o título do artigo para o modal
           onClose={() => {
             setShowSendMessage(false); // Fecha o modal de envio de mensagem
             setSelectedRecipient(null); // Limpa o destinatário selecionado
+            setSelectedArticleTitle(null); // Limpa o título ao fechar
           }}
         />
       )}
