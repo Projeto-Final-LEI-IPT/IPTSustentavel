@@ -149,6 +149,8 @@ const MemoizedArticle = memo(({ artigo, userId, onEditClick, onMessageClick, onA
       <p>Estado: {artigo.estado || 'Indisponível'}</p>
       {/* Informação sobre a categoria do artigo (com valor predefinido) */}
       <p>Categoria: {artigo.categoria?.nome || 'Sem categoria'}</p>
+      {/* Informação sobre a disponibilidade do artigo */}
+      <p>Disponibilidade: {artigo.disponivel ? 'Disponível' : 'Indisponível'}</p>
       <div className="item-actions">
         {/* Botão para ver mais detalhes sobre o artigo */}
         <button
@@ -389,13 +391,22 @@ const MainContent = ({
       {/* Secção de artigos recentes */}
       {/* Contentor principal da secção de artigos recentes, com a classe "recent-section" para estilização*/}
       <div className="recent-section">
-        {/* Título da secção de artigos recentes*/}
-        <h2>
-          {isSearching || searchTerm ?
-            `Resultados para "${searchTerm}"` :
-            'Artigos Recentes'
-          }
-        </h2>
+      {/* Título da secção de artigos recentes
+       Renderiza um título dinâmico que exibe 'Artigos Recentes' por predefinição, 
+       ou mostra os resultados da pesquisa combinando o termo pesquisado, 
+       categoria selecionada e condição do artigo, utilizando concatenação de strings condicional*/}
+       <h2>
+         {isSearching || searchTerm || selectedCategory || selectedCondition ?
+           `Resultados ${searchTerm ? `para "${searchTerm}"` : ""
+           }${selectedCategory ?
+             `${searchTerm ? " na categoria " : "na categoria "}${categorias.find(cat => cat.id === selectedCategory)?.nome || ""
+             }` : ""
+           }${selectedCondition ?
+             `${searchTerm || selectedCategory ? " com condição " : "com condição "}${selectedCondition}` : ""
+           }` :
+           'Artigos Recentes'
+         }
+       </h2>
 
         {/* Contentor que agrupa todos os cartões de artigos, com a classe "recent-items" para estilização*/}
         <div className="recent-items">
