@@ -1,417 +1,710 @@
-/* Estilo para a sobreposi√ß√£o do modal que cobre toda a tela */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000; /* Z-index alto para garantir que esteja sobre outros elementos */
+/* Estilo para a sobreposiÁ„o do modal que cobre toda o ecr„ */
+.edit-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Para centralizaÁ„o vertical */
+    z-index: 1100;
+    height: 100%;
 }
 
 /* Estilo para o contentor principal do modal */
-.article-detail-modal {
-  background: white;
-  padding: 2rem;
-  border-radius: 10px;
-  max-width: 1200px;
-  width: 90%;
-  max-height: 90vh; /* Limita a altura m√°xima a 90% da altura da janela */
-  overflow-y: auto; /* Adiciona barra de rolagem vertical quando necess√°rio */
-  position: relative;
+.article-edit-modal {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    max-width: 1250px;
+    width: 95%; /* Garante que usa a maior parte da largura disponÌvel */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: auto; /* Permite scroll quando necess·rio */
+    max-height: 90vh; /* Limita a altura m·xima */
 }
 
-/* Bot√£o para fechar o modal */
+/* Bot„o para fechar o modal */
 .close-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #333;
-  transition: opacity 0.3s;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+    transition: opacity 0.3s;
 }
 
-.close-button:hover {
-  opacity: 0.7;
-}
+    .close-button:hover {
+        opacity: 0.7;
+    }
 
-/* Layout de grelha para o conte√∫do do modal */
+/* Layout da grelha para o conte˙do do modal */
 .product-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Dividido em duas colunas iguais */
-  gap: 2rem;
-  margin-top: 1rem;
-  height: 87vh;
-  min-height: 0;
-  align-items: start;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Dividido em duas colunas iguais */
+    gap: 2rem;
+    margin-top: 1rem;
+    height: 87vh;
+    min-height: 0;
+    align-items: start;
+    overflow: auto; /* Permite scroll de conte˙do */
 }
 
-/* Estilo para a sec√ß√£o do formul√°rio √† esquerda */
+/* Estilo para a secÁ„o do formul·rio ‡ esquerda */
 .form-section {
-  padding-right: 2rem;
-  border-right: 1px solid #eee; /* Separador visual */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow-y: auto;
+    padding-right: 1.3rem;
+    border-right: 1px solid #eee;
+    /* Separador visual */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto; /* Permite scroll quando necess·rio */
 }
 
-/* Estilo para a sec√ß√£o da galeria √† direita */
-.gallery-section {
-  padding: 0 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  height: 100%;
-  flex-grow: 1;
-  overflow: hidden;
+/* Estilo para a secÁ„o da galeria ‡ direita */
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding-left: 2rem;
+    height: 100%;
+    justify-content: space-between;
+    overflow: auto; /* Permite scroll quando necess·rio */
 }
 
-/* Estilo para os t√≠tulos dentro do modal */
-.product-title,
-.gallery-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem !important;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-  padding: 0 0.5rem;
+/* Estilo para os tÌtulos dentro do modal */
+.product-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    padding: 0 0.5rem;
 }
 
-/* Contador de caracteres nos t√≠tulos */
-.gallery-title span {
-  font-weight: normal;
-  font-size: 0.9em;
-  color: #666;
-  margin-left: 0.3rem;
-}
-
-/* Contentor para a imagem principal */
-.main-image {
-  height: 68%;
-  background: #f5f5f5;
-  border-radius: 8px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-/* Estilo para a imagem principal do produto */
-.product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* Mant√©m a propor√ß√£o da imagem */
-}
-
-/* Grelha para as miniaturas das imagens */
-.thumbnail-grid {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(60px, 1fr);
-  gap: 0.6rem;
-  overflow-y: auto;
-  padding: 0 0.5rem 1rem;
-  height: 50%;
-  flex-grow: 0;
-}
-
-/* Estilo para cada item de miniatura */
-.thumbnail-item {
-  aspect-ratio: 1/1; /* Propor√ß√£o quadrada */
-  background: #f5f5f5;
-  border-radius: 4px;
-  overflow: hidden;
-  cursor: pointer;
-  position: relative;
-}
-
-/* Estilo para a imagem dentro da miniatura */
-.thumbnail-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Estilo para o bot√£o de adicionar nova imagem */
-.upload-thumbnail {
-  aspect-ratio: 1/1;
-  background: #f8f9fa;
-  border: 2px dashed #ddd;
-  border-radius: 4px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #666;
-  padding: 1rem;
-  text-align: center;
-}
-
-.upload-thumbnail:hover {
-  border-color: #007bff;
-  background: #e3f2fd;
-}
-
-/* Bot√£o para apagar uma foto */
-.delete-photo-btn {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: rgba(255, 255, 255, 0.8);
-  border: none;
-  border-radius: 50%;
-  padding: 5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.delete-photo-btn:hover {
-  background: #ff4444;
-  color: white;
-}
-
-/* Layout de grelha para os campos do formul√°rio */
+/* Layout da grelha para os campos do formul·rio */
 .form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 colunas com largura igual */
-  gap: 1rem !important;
-  margin-bottom: 2rem;
-  flex-grow: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 colunas com largura igual */
+    gap: 1rem !important;
+    margin-bottom: 2rem;
+    flex-grow: 1;
 }
 
-/* Estilo para os grupos de campos de formul√°rio */
+/* Estilo para os grupos dos campos do formul·rio */
 .form-group {
-  margin-bottom: 0.8rem !important;
-  position: relative;
+    margin-bottom: 0.8rem !important;
+    position: relative;
 }
 
-/* Campos que ocupam a largura total da grelha */
-.form-group.full-width {
-  grid-column: 1 / -1;
-}
+    /* Campos que ocupam a largura total da grelha */
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
 
-/* Estilo para os r√≥tulos dos campos */
-.form-group label {
-  display: flex;
-  align-items: baseline;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #444;
-  gap: 0.5rem;
-  justify-content: flex-start;
-}
+    /* Estilo para os rÛtulos dos campos */
+    .form-group label {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #444;
+        gap: 0.5rem;
+        justify-content: flex-start;
+    }
 
-/* Indicador visual para campos obrigat√≥rios */
-.form-group.required label::after {
-  content: '*';
-  color: #dc3545;
-  margin-left: 4px;
-}
+    /* Indicador visual para campos obrigatÛrios */
+    .form-group.required label::after {
+        content: '*';
+        color: #dc3545;
+        margin-left: 4px;
+    }
 
 /* Estilo para o contador de caracteres */
 .char-count {
-  font-weight: normal;
-  color: #666;
-  font-size: 0.9em;
-  order: 1;
+    font-weight: normal;
+    color: #666;
+    font-size: 0.9em;
+    order: 1;
 }
 
 /* Estilo para inputs, selects e textareas */
 .form-group input,
 .form-group select,
 .form-group textarea {
-  width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.15s ease-in-out;
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out;
+    box-sizing: border-box; /* Garante que o padding n„o adiciona ‡ largura */
 }
 
-/* Largura m√°xima para campos de texto */
-.form-group input[type="text"] {
-  max-width: 25ch;
-}
+    /* Largura m·xima para campos de texto */
+    .form-group input[type="text"] {
+        max-width: 25ch;
+    }
 
-/* Efeito de foco para os elementos do formul√°rio */
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  outline: none;
-}
+    /* Efeito de foco para os elementos do formul·rio */
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
 
 /* Contentor para as textareas */
 .textarea-container {
-  margin: 0.2rem 0 !important;
-  position: relative;
+    margin: 0.2rem 0 !important;
+    position: relative;
 }
 
-/* Estilo espec√≠fico para textareas */
+/* Estilo especÌfico para textareas */
 .form-group textarea {
-  min-height: 80px !important;
-  height: auto;
-  resize: vertical; /* Permite redimensionar verticalmente */
-  line-height: 1.5;
-  padding: 0.6rem !important;
+    min-height: 80px !important;
+    height: auto;
+    resize: vertical;
+    /* Permite redimensionar verticalmente */
+    line-height: 1.5;
+    padding: 0.6rem !important;
 }
 
-/* Placeholder quando n√£o h√° imagens */
-.image-placeholder {
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #666;
-}
-
-/* Contentor para os bot√µes de a√ß√£o do modal */
-.modal-actions {
-  margin-top: auto;
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  padding-top: 2rem;
-}
-
-/* Estilo base para os bot√µes de a√ß√£o */
+/* Estilo base para os botıes de aÁ„o */
 .btn-cancel,
 .btn-save {
-  padding: 0.8rem 2rem;
-  min-width: 180px;
-  text-align: center;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  border-radius: 5px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+    padding: 0.8rem 2rem;
+    min-width: 180px;
+    text-align: center;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
-/* Estilo espec√≠fico para o bot√£o de guardar */
+/* Contentor para os botıes de aÁ„o do modal */
+.edit-modal-actions {
+    width: 100%;
+    display: flex;
+    gap: 25px;
+    justify-content: flex-start;
+    margin-top: 20px;
+}
+
+/* Estilo especÌfico para o bot„o de guardar */
 .btn-save {
-  background: #007bff;
-  color: white;
-  border: 1px solid #0056b3;
+    background: #007bff;
+    color: white;
+    border: 1px solid #0056b3;
 }
 
-/* Efeito hover para os bot√µes */
-.btn-cancel:hover,
-.btn-save:hover {
-  transform: translateY(-1px);
+/* Estilo especÌfico para o bot„o de cancelar */
+.btn-cancel {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    color: #333;
 }
 
+    /* Efeito hover para os botıes */
+    .btn-cancel:hover,
+    .btn-save:hover {
+        transform: translateY(-1px);
+    }
+
 .btn-save:hover {
-  background: #0056b3;
+    background: #0056b3;
+}
+
+/* Estilos para o modal de recorte de imagem sempre visÌvel */
+.crop-modal-overlay {
+    position: relative;
+    background: white;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: visible;
+    height: 410px;
+    width: calc(100% - 3rem);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Contentor principal do modal de recorte */
+.crop-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    align-items: center;
+}
+
+/* Contentor para a ·rea de recorte da imagem */
+.crop-container {
+    flex: 1;
+    width: 100%;
+    min-height: 220px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ¡rea para os botıes de aÁ„o do recorte */
+.crop-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 15px 0;
+    width: 100%;
+    z-index: 10;
+}
+
+/* Contentor centralizado para adicionar imagem */
+.add-image-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+/* Bot„o circular centralizado para adicionar imagem */
+.add-button-centered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px dashed #007bff;
+    /* Garantir borda visÌvel */
+    transition: all 0.2s ease;
+    position: relative;
+    /* Adicionar para contexto correto */
+    background: white;
+}
+
+    .add-button-centered:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+/* Texto descritivo para o bot„o de adicionar imagem */
+.add-image-centered span {
+    color: #007bff;
+    font-size: 14px;
+    text-align: center;
+    position: absolute;
+    top: calc(50% + 45px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+/* Contentor para miniaturas de imagens */
+.thumbnails-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+    height: 60px;
+    justify-content: center;
+}
+
+/* Contentor para cada miniatura individual */
+.thumbnail-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+/* Estilo para cada miniatura */
+.thumbnail {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+    /* Imagem dentro da miniatura */
+    .thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+/* Bot„o para remover miniatura */
+.remove-thumbnail {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 22px;
+    height: 22px;
+    background: #dc3545;
+    border: none;
+    color: white;
+    border-radius: 50%;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+    .remove-thumbnail:hover {
+        background: #bb2d3b;
+    }
+
+/* EstilizaÁ„o para miniaturas vazias */
+.empty-thumbnail {
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    border: 2px dashed #ccc;
+}
+
+.thumbnail.empty {
+    opacity: 0.6;
+}
+
+/* Tooltip para mensagem de limite atingido */
+.limit-tooltip {
+    position: absolute;
+    background-color: #dc3545;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: nowrap;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    animation: fadeIn 0.3s;
+}
+
+    /* Seta do tooltip */
+    .limit-tooltip:after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        margin-left: -8px;
+        border-width: 8px 8px 0;
+        border-style: solid;
+        border-color: #dc3545 transparent transparent transparent;
+    }
+
+/* AnimaÁ„o para o tooltip aparecer suavemente */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* Media queries para responsividade */
 @media (max-width: 1024px) {
-  .thumbnail-grid {
-    grid-template-columns: repeat(4, 1fr); /* Reduz para 4 colunas em ecr√£s menores */
-  }
+    .crop-modal-overlay {
+        height: 380px;
+    }
+
+    .thumbnail-wrapper {
+        width: 70px;
+        height: 70px;
+    }
 }
 
 @media (max-width: 768px) {
-  .product-container {
-    grid-template-columns: 1fr; /* Muda para layout vertical */
-    height: auto;
-  }
-  
-  .form-section {
-    padding-right: 0;
-    border-right: none;
-    height: auto;
-  }
-  
-  .gallery-section {
-    padding: 0;
-    border-top: 1px solid #eee;
-    padding-top: 2rem;
-    height: auto;
-  }
-  
-  .form-grid {
-    grid-template-columns: 1fr; /* Uma coluna em ecr√£s menores */
-  }
-  
-  .product-title,
-  .gallery-title {
-    font-size: 1.1rem;
-    padding: 0 0.3rem;
-    margin-bottom: 0.6rem;
-  }
-  
-  .thumbnail-grid {
-    grid-template-columns: repeat(3, 1fr); /* Reduz para 3 colunas */
-    height: auto;
-    padding: 0 0.3rem 1rem;
-    gap: 0.4rem;
-  }
-  
-  .modal-actions {
-    flex-direction: column;
-    padding-top: 2rem;
-  }
-  
-  .btn-cancel,
-  .btn-save {
-    width: 100%;
-    min-width: auto;
-  }
+    .product-container {
+        grid-template-columns: 1fr;
+        /* Muda para layout vertical */
+        height: auto;
+        max-height: 70vh;
+        overflow: auto;
+    }
 
-  .image-placeholder {
-    font-size: 1.1rem;
-  }
+    .form-section {
+        padding-right: 0;
+        border-right: none;
+        height: auto;
+    }
 
-  .main-image {
-    height: 300px;
-    margin-bottom: 0.3rem;
-  }
+    .right-column {
+        padding-left: 0;
+        border-left: none;
+        border-top: 1px solid #eee;
+        padding-top: 2rem;
+        height: auto;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        /* Uma coluna em ecr„s menores */
+    }
+
+    .product-title {
+        font-size: 1.1rem;
+        padding: 0 0.3rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .crop-modal-overlay {
+        height: 350px;
+    }
+
+    .thumbnails-container {
+        justify-content: center;
+    }
+
+    .edit-modal-actions,
+    .modal-actions {
+        flex-direction: column;
+        padding-top: 2rem;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .btn-cancel,
+    .btn-save {
+        width: 100%;
+        min-width: fixed;
+    }
 }
 
 @media (max-width: 480px) {
-  .article-detail-modal {
-    width: 95%;
-    padding: 0.8rem;
-  }
-  
-  .thumbnail-grid {
-    grid-template-columns: repeat(2, 1fr); /* Reduz para 2 colunas em ecr√£s muito pequenos */
-  }
-  
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    padding: 0.6rem;
-  }
+    /* Container principal do modal */
+    .edit-modal-overlay {
+        align-items: center;
+        padding: 10px;
+    }
 
-  .form-group textarea {
-    min-height: 80px;
-  }
+    .article-edit-modal {
+        width: 95%;
+        max-width: 100%;
+        padding: 1rem;
+        border-radius: 6px;
+        margin: 0 auto;
+        overflow: auto; /* Permite scroll quando necess·rio */
+        max-height: 90vh;
+        box-sizing: border-box;
+    }
 
-  .product-title,
-  .gallery-title,
-  .image-placeholder {
-    font-size: 1rem;
-  }
+    /* Container do produto - ajusta para coluna ˙nica */
+    .product-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        height: auto; /* Altura autom·tica ao invÈs de fixa */
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        max-height: none; /* Remover limite de altura que pode causar cortes */
+        overflow: visible;
+    }
 
-  .main-image {
-    height: 250px;
-  }
+    /* SeÁıes principais */
+    .form-section,
+    .right-column {
+        width: 100%;
+        padding: 0;
+        border: none;
+        margin: 0;
+        box-sizing: border-box;
+        overflow: visible;
+    }
+
+    /* Container do formul·rio */
+    .form-grid {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.8rem;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Grupos de formul·rio */
+    .form-group {
+        width: 100%;
+        margin: 0 0 0.8rem 0;
+    }
+
+        /* Inputs, selects e textareas */
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            max-width: 100% !important; /* Sobrescrever qualquer max-width */
+            padding: 0.6rem;
+            box-sizing: border-box;
+        }
+
+    /* Corrigir o posicionamento dos botıes */
+    .edit-modal-actions {
+        position: static; /* Remover posicionamento relativo */
+        width: 100%;
+        display: flex;
+        flex-direction: row; /* Manter botıes lado a lado em mobile */
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 20px;
+        left: 0;
+    }
+
+    .modal-actions {
+        position: static;
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    /* Overlay do modal de recorte */
+    .crop-modal-overlay {
+        width: 100%;
+        height: 200px;
+        margin: 10px auto;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    /* Container de miniaturas */
+    .thumbnails-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+        width: 100%;
+        height: auto;
+        margin: 10px auto;
+    }
+
+    /* Miniaturas */
+    .thumbnail-wrapper {
+        width: 45px;
+        height: 45px;
+        margin-bottom: 0;
+    }
+
+    .add-button-centered {
+        width: 45px;
+        height: 45px;
+    }
+
+    /* TÌtulo do produto */
+    .product-title {
+        font-size: 1rem;
+        text-align: center;
+        padding: 0;
+        margin-bottom: 1rem !important;
+    }
+
+    /* Botıes e aÁıes */
+    .crop-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: row; /* Manter botıes lado a lado */
+        justify-content: center;
+        gap: 10px;
+        padding: 10px 0;
+        margin: 0;
+    }
+
+    .btn-cancel,
+    .btn-save {
+        flex: 1;
+        min-width: 0;
+        padding: 0.6rem;
+    }
+
+    /* Texto da imagem */
+    .add-image-centered span {
+        top: calc(50% + 30px);
+        font-size: 12px;
+    }
+
+    /* Ajustar o modal quando o teclado est· ativo */
+    input:focus ~ .article-edit-modal,
+    textarea:focus ~ .article-edit-modal {
+        height: auto !important;
+        max-height: 60vh;
+        overflow: auto;
+    }
+}
+
+/* Estilos especÌficos para quando o dispositivo estiver na horizontal */
+@media (max-width: 900px) and (orientation: landscape) {
+    .edit-modal-overlay {
+        align-items: flex-start;
+        padding-top: 10px;
+    }
+
+    .article-edit-modal {
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    /* Manter layout de uma coluna mesmo em paisagem para economizar espaÁo vertical */
+    .product-container {
+        grid-template-columns: 1fr;
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+/* Ajustes para elementos que podem ficar escondidos pelo teclado */
+@media (max-height: 600px) {
+    .edit-modal-overlay {
+        align-items: flex-start;
+        padding-top: 10px;
+    }
+
+    .article-edit-modal {
+        max-height: 95vh;
+        overflow-y: auto;
+    }
+}
+
+/* Impede zoom em iOS ao focar campos */
+@media screen and (max-width: 768px) {
+    input,
+    select,
+    textarea {
+        font-size: 16px !important; /* Garantir tamanho mÌnimo para prevenir zoom */
+    }
 }
