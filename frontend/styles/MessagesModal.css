@@ -1,466 +1,543 @@
-/* Sobreposi√ß√£o do modal - cria um fundo escurecido que cobre toda a p√°gina */
+/* SobreposiÁ„o do modal - cria um fundo escurecido que cobre toda a p·gina */
 .messages-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-/* Conte√∫do principal do modal - a caixa branca que cont√©m a interface de mensagens */
+/* Conte˙do principal do modal - a caixa branca que contÈm a interface de mensagens */
 .messages-modal-content {
-  position: relative;
-  background: white;
-  padding: 2rem 1.5rem 1.5rem;
-  border-radius: 8px;
-  width: 95%;
-  max-width: 1200px;
-  height: 80vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+    position: relative;
+    background: white;
+    padding: 2rem 1.5rem 1.5rem;
+    border-radius: 8px;
+    width: 95%;
+    max-width: 1200px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
-/* Bot√£o para fechar o modal - posicionado no canto superior direito */
+/* Bot„o para fechar o modal - posicionado no canto superior direito */
 .close-modal-button {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 22px;
-  height: 22px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 10;
+    position: relative;
+    top: -1.5rem;
+    right: 0.75rem;
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
 }
 
-/* Cria√ß√£o do "X" para o bot√£o de fechar - primeira linha diagonal */
-.close-modal-button::before,
-.close-modal-button::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 2px;
-  background-color: #666;
-  top: 50%;
-  left: 50%;
-}
+    /* CriaÁ„o do "X" para o bot„o de fechar - primeira linha diagonal */
+    .close-modal-button::before,
+    .close-modal-button::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 2px;
+        background-color: #666;
+        top: 50%;
+        left: 50%;
+    }
 
-/* Rota√ß√£o para a primeira linha do "X" */
-.close-modal-button::before {
-  transform: translate(-50%, -50%) rotate(45deg);
-}
+    /* RotaÁ„o para a primeira linha do "X" */
+    .close-modal-button::before {
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
 
-/* Rota√ß√£o para a segunda linha do "X" */
-.close-modal-button::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
-}
+    /* RotaÁ„o para a segunda linha do "X" */
+    .close-modal-button::after {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
 
-/* Efeito hover para o bot√£o de fechar - escurece as linhas do "X" */
-.close-modal-button:hover::before,
-.close-modal-button:hover::after {
-  background-color: #333;
-}
+    /* Efeito hover para o bot„o de fechar - escurece as linhas do "X" */
+    .close-modal-button:hover::before,
+    .close-modal-button:hover::after {
+        background-color: #333;
+    }
 
 /* Lista de Conversas - painel lateral esquerdo */
 .conversations-list {
-  width: 35%;
-  min-width: 320px;
-  border-right: 1px solid #ddd;
-  padding: 1rem 1rem 0 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+    width: 45%;
+    min-width: 350px;
+    border-right: 1px solid #ddd;
+    padding: 1rem 1rem 0 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Campo de pesquisa dentro da lista de conversas */
-.conversations-list input {
-  width: 100%;
-  padding: 0.375rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 0.875rem;
-}
+    /* Campo de pesquisa dentro da lista de conversas */
+    .conversations-list input {
+        width: 100%;
+        padding: 0.375rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 0.875rem;
+    }
 
 /* Item individual de conversa na lista lateral */
 .conversation-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  margin: 0.2rem 0;
-  width: 100%;
-  box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0.2rem 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* Efeito hover para os itens de conversa */
-.conversation-item:hover {
-  background-color: #f5f5f5;
-}
+    /* Efeito hover para os itens de conversa */
+    .conversation-item:hover {
+        background-color: #f5f5f5;
+    }
 
-/* Estilo para a conversa atualmente selecionada */
-.conversation-item.active {
-  background-color: #e3f2fd;
-}
+    /* Estilo para a conversa atualmente selecionada */
+    .conversation-item.active {
+        background-color: #e3f2fd;
+    }
 
 /* Avatar do utilizador mostrado na lista de conversas */
 .user-avatar {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  background-color: #007bff;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 0.875rem;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.875rem;
 }
 
-/* √Årea de Chat - painel principal √† direita */
+/* ¡rea de Chat - painel principal ‡ direita */
 .chat-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
-/* Cabe√ßalho da √°rea de chat - mostra informa√ß√µes do contacto atual */
+/* CabeÁalho da ·rea de chat - mostra informaÁıes do contacto atual */
 .chat-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #ddd;
+    margin: 0.5rem;
 }
 
-/* T√≠tulo do chat - nome do contacto ou grupo */
-.chat-header h3 {
-  font-size: 1rem;
-  margin: 0;
-}
+    /* TÌtulo do chat - nome do contacto ou grupo */
+    .chat-header h3 {
+        font-size: 1rem;
+        margin: 0.3rem;
+    }
 
 /* Contentor para as mensagens do chat */
 .chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.75rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
 }
 
 /* Estilo base para as bolhas de mensagem */
 .message-bubble {
-  max-width: 75%;
-  padding: 0.5rem;
-  border-radius: 1rem;
-  font-size: 0.875rem;
-  line-height: 1.4;
+    max-width: 75%;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin: 0.1rem 0.8rem;
 }
 
-/* Estilo para mensagens enviadas pelo utilizador */
-.message-bubble.sent {
-  background-color: #007bff;
-  color: white;
-  align-self: flex-end;
-}
+    /* Estilo para mensagens enviadas pelo utilizador */
+    .message-bubble.sent {
+        background-color: #007bff;
+        color: white;
+        align-self: flex-end;
+    }
 
-/* Estilo para mensagens recebidas */
-.message-bubble.received {
-  background-color: #e9ecef;
-  align-self: flex-start;
-}
+    /* Estilo para mensagens recebidas */
+    .message-bubble.received {
+        background-color: #e9ecef;
+        align-self: flex-start;
+    }
 
-/* Formata√ß√£o para a hora/data dentro das bolhas de mensagem */
-.message-bubble span {
-  display: block;
-  font-size: 0.6875rem;
-  opacity: 0.8;
-  margin-top: 0.2rem;
-}
+    /* FormataÁ„o para a hora/data dentro das bolhas de mensagem */
+    .message-bubble span {
+        display: block;
+        font-size: 0.6875rem;
+        opacity: 0.8;
+        margin-top: 0.2rem;
+    }
 
 /* Divisor de data que separa mensagens de dias diferentes */
 .date-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0.75rem 0;
-  position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.75rem 0;
+    position: relative;
+    color: #666;
 }
 
-/* Texto da data no divisor */
-.date-divider span {
-  background: #f0f0f0;
-  padding: 0.2rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  color: #666;
-  z-index: 1;
-}
+    /* Texto da data no divisor */
+    .date-divider span {
+        background: #f0f0f0;
+        padding: 0.2rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        color: #666;
+        z-index: 1;
+    }
 
-/* Linha horizontal do divisor de data */
-.date-divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #ddd;
-  z-index: 0;
-}
+    /* Linha horizontal do divisor de data */
+    .date-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #ddd;
+        z-index: 0;
+    }
 
-/* √Årea de input para digitar mensagens */
+/* ¡rea de input para digitar mensagens */
 .chat-input {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-top: 1px solid #ddd;
-  min-height: 60px;
-  max-height: 60px;
-  overflow: visible;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-top: 1px solid #ddd;
+    min-height: 60px;
+    max-height: 60px;
+    overflow: visible;
 }
 
-/* Campo de texto para digitar mensagens */
-.chat-input input[type="text"] {
-  flex: 1;
-  padding: 0.375rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.875rem;
-}
+    /* Campo de texto para digitar mensagens */
+    .chat-input input[type="text"] {
+        flex: 1;
+        padding: 0.375rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
 
 /* Estilo para mensagens de erro */
 .error-message {
-  color: #dc3545;
-  padding: 0.75rem;
-  background-color: #f8d7da;
-  border-radius: 4px;
-  margin: 0.75rem 0;
-  font-size: 0.875rem;
+    color: #dc3545;
+    padding: 0.75rem;
+    background-color: #f8d7da;
+    border-radius: 4px;
+    margin: 0.75rem 0;
+    font-size: 0.875rem;
 }
 
 /* Contentor para indicadores de carregamento */
 .loading-container {
-  text-align: center;
-  padding: 1.5rem;
-  color: #666;
-  font-size: 0.875rem;
+    text-align: center;
+    padding: 1.5rem;
+    color: #666;
+    font-size: 0.875rem;
 }
 
-/* Estilos para t√≠tulos dentro do modal */
+/* Estilos para tÌtulos dentro do modal */
 .modal-title {
-  font-size: 1.5rem;
-  color: #333;
-  margin: 0 0 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
-  width: 100%;
-}
-
-/* Media queries para responsividade em ecr√£s pequenos */
-@media (max-width: 768px) {
-  .messages-modal-content {
-    flex-direction: column;
-    height: 90vh;
-    padding: 0.75rem;
-    width: 98%;
-  }
-
-  /* Em ecr√£s pequenos, a lista de conversas fica em cima */
-  .conversations-list {
+    font-size: 1.5rem;
+    color: #333;
+    margin: 0 0 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
     width: 100%;
-    height: 35%;
-    border-right: none;
-    border-bottom: 1px solid #ddd;
-    padding: 1rem 0 0 0;
-    min-width: auto;
-  }
-
-  /* A √°rea de chat ocupa a parte inferior em ecr√£s pequenos */
-  .chat-area {
-    height: 65%;
-  }
-
-  /* Ajuste do tamanho das bolhas de mensagem em ecr√£s pequenos */
-  .message-bubble {
-    max-width: 85%;
-    padding: 0.375rem;
-  }
-
-  /* Redu√ß√£o do tamanho do avatar em ecr√£s pequenos */
-  .user-avatar {
-    width: 30px;
-    height: 30px;
-    font-size: 0.75rem;
-  }
-
-  /* Ajuste da altura do campo de input em ecr√£s pequenos */
-  .chat-input {
-    min-height: 50px;
-    max-height: 50px;
-  }
-
-  /* Ajuste do tamanho dos t√≠tulos em ecr√£s pequenos */
-  .modal-title {
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-  }
 }
 
-/* Contentor flex√≠vel que organiza a lista de conversas e a √°rea de chat */
-.messages-content-wrapper {
-  display: flex;
-  gap: 1.5rem;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* Em ecr√£s pequenos, coloca a lista de conversas sobre a √°rea de chat */
+/* Media queries para responsividade em ecr„s pequenos */
 @media (max-width: 768px) {
-  .messages-content-wrapper {
-    flex-direction: column;
-  }
+    .messages-modal-content {
+        flex-direction: column;
+        height: 90vh;
+        padding: 0.75rem;
+        width: 98%;
+    }
+
+    /* Em ecr„s pequenos, a lista de conversas fica em cima */
+    .conversations-list {
+        width: 100%;
+        height: 35%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        padding: 1rem 0 0 0;
+        min-width: auto;
+    }
+
+    /* A ·rea de chat ocupa a parte inferior em ecr„s pequenos */
+    .chat-area {
+        height: 60%;
+    }
+
+    /* Ajuste do tamanho das bolhas de mensagem em ecr„s pequenos */
+    .message-bubble {
+        max-width: 85%;
+        padding: 0.375rem;
+    }
+
+    /* ReduÁ„o do tamanho do avatar em ecr„s pequenos */
+    .user-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 0.75rem;
+    }
+
+    /* Ajuste da altura do campo de input em ecr„s pequenos */
+    .chat-input {
+        min-height: 50px;
+        max-height: 50px;
+    }
+
+    /* Ajuste do tamanho dos tÌtulos em ecr„s pequenos */
+    .modal-title {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
 }
 
-/* Estilos para o container do √≠cone de mensagens */
+/* Contentor flexÌvel que organiza a lista de conversas e a ·rea de chat */
+.messages-content-wrapper {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Em ecr„s pequenos, coloca a lista de conversas sobre a ·rea de chat */
+@media (max-width: 768px) {
+    .messages-content-wrapper {
+        flex-direction: column;
+    }
+}
+
+/* Estilos para o container do Ìcone de mensagens */
 .message-icon-container {
-  position: relative;
-  display: inline-block;
+    position: relative;
+    display: inline-block;
 }
 
-/* Estilo para o badge de mensagens n√£o lidas */
+/* Estilo para o badge de mensagens n„o lidas */
 .unread-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background-color: #ff3b30;
-  color: white;
-  border-radius: 50%;
-  padding: 2px 6px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  min-width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ff3b30;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    min-width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
+
 .conversation-info {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* Estilo para o bot√£o de enviar */
+/* Estilo para o bot„o de enviar */
 .send-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  padding: 0;
-  margin-left: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    margin-left: 8px;
 }
 
-/* Efeito hover para o bot√£o de enviar */
-.send-button:hover {
-  background-color: #0069d9;
-  transform: scale(1.05);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-}
+    /* Efeito hover para o bot„o de enviar */
+    .send-button:hover {
+        background-color: #0069d9;
+        transform: scale(1.05);
+        box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+    }
 
-/* Estado desativado quando n√£o h√° texto */
-.send-button:disabled {
-  background-color: #b0b0b0;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
+    /* Estado desativado quando n„o h· texto */
+    .send-button:disabled {
+        background-color: #b0b0b0;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
 
-/* Ajuste da entrada de texto para combinar com o novo bot√£o */
+/* Ajuste da entrada de texto para combinar com o novo bot„o */
 .chat-input input[type="text"] {
-  flex: 1;
-  padding: 10px 15px;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-  transition: border-color 0.2s;
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s;
 }
 
-.chat-input input[type="text"]:focus {
-  border-color: #007bff;
-  outline: none;
-}
+    .chat-input input[type="text"]:focus {
+        border-color: #007bff;
+        outline: none;
+    }
 
-/* Estilos para conte√∫do de mensagem com t√≠tulo de artigo */
+/* Estilos para conte˙do de mensagem com tÌtulo de artigo */
 .message-content {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Estilo para t√≠tulo do artigo */
+/* Estilo para tÌtulo do artigo */
 .article-title {
-  font-weight: bold;
-  margin-bottom: 1px;
+    font-weight: bold;
+    margin-bottom: 1px;
 }
 
-/* Espa√ßador entre t√≠tulo e mensagem */
+/* EspaÁo entre tÌtulo e mensagem */
 .message-spacer {
-  height: 1px;
+    height: 1px;
 }
 
 /* Estilo para o texto da mensagem */
 .message-text {
-  margin-top: 1px;
+    margin-top: 1px;
 }
 
-/* Ajuste para que par√°grafos n√£o tenham margem quando n√£o h√° t√≠tulo */
+/* Ajuste para que par·grafos n„o tenham margem quando n„o h· tÌtulo */
 .message-bubble p {
-  margin: 0;
+    margin: 0;
 }
 
 /* Campo de pesquisa dentro da lista de conversas */
 .conversations-list input {
-  width: 100%;
-  padding: 0.375rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 0.875rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    padding: 0.375rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.875rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* Estado de foco para o campo de pesquisa */
-.conversations-list input:focus {
-  border-color: #007bff;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    .conversations-list input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+/* Dispositivos mÛveis muito pequenos */
+@media (max-width: 480px) {
+
+    /* Modal em telas muito pequenas */
+    .messages-modal-content {
+        padding: 1rem;
+        height: 85vh;
+        width: 100%;
+        border-radius: 5;
+    }
+
+    /* Bot„o de fechar mais f·cil de tocar em dispositivos mÛveis */
+    .close-modal-button {
+        top: -1rem;
+        right: 0rem;
+        width: 30px;
+        height: 30px;
+    }
+
+    /* Maior ·rea de toque para itens de conversa */
+    .conversation-item {
+        padding: 0.75rem 0.5rem;
+        gap: 0.75rem;
+    }
+
+    /* Aumenta a ·rea clic·vel do bot„o de enviar para facilitar o toque */
+    .send-button {
+        width: 46px;
+        height: 46px;
+    }
+
+    /* Ajusta o tamanho das bolhas de mensagem para telas muito pequenas */
+    .message-bubble {
+        max-width: 90%;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Ajusta a ·rea de input para melhor experiÍncia em toque */
+    .chat-input input[type="text"] {
+        padding: 12px 15px;
+    }
+
+
+    .chat-messages {
+        width: auto;
+        background-color: #e0e2e3;
+    }
+
+    .chat-header {
+        padding: 0.0rem 0.6rem;
+        width: auto;
+        height: 56px;
+        background-color: #d6d7d8;
+        margin: 0
+    }
+
+    /* Linha horizontal do divisor de data */
+    .date-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: black;
+        z-index: 0;
+    }
+}
+/* Estilo para o cabeÁalho do modal com disposiÁ„o flexÌvel */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0rem;
 }
