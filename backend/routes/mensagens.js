@@ -83,7 +83,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 // POST criar nova mensagem
 // Rota para criar uma nova mensagem (requer autenticação)
 router.post('/', authenticateToken, async (req, res) => {
-  const { conteudo, lida, remetente_id, destinatario_id } = req.body;
+  const { conteudo, lida, remetente_id, destinatario_id, artigo_id } = req.body;
 
   if (!conteudo || !remetente_id || !destinatario_id) {
     return res.status(400).send({
@@ -98,7 +98,8 @@ router.post('/', authenticateToken, async (req, res) => {
       lida, // Estado de leitura da mensagem
       remetente_id, // ID do utilizador que envia
       destinatario_id, // ID do utilizador que recebe
-      data: new Date() // Data atual de envio
+      data: new Date(), // Data atual de envio
+      artigo_id
     });
     // Obtém a mensagem criada com dados completos dos utilizadores
     const mensagemCompleta = await db.Mensagem.findByPk(novaMensagem.id, {
@@ -163,6 +164,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     });
   }
 });
+
 // GET contagem de mensagens não lidas
 router.get('/nao-lidas/contagem', authenticateToken, async (req, res) => {
   try {
