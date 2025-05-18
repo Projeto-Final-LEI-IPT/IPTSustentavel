@@ -24,6 +24,15 @@ module.exports = (sequelize, DataTypes) => {
         as: 'destinatario'
       });
     };
+   
+     // Adicionar nova associação com o modelo Artigo (se existir)
+    if (models.Artigo) {
+      Mensagem.belongsTo(models.Artigo, {
+        foreignKey: 'artigo_id',
+        as: 'artigo'
+      });
+    }
+   };
    // Retorna o modelo Mensagem configurado
     return Mensagem;
   };
