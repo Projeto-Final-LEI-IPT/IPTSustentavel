@@ -68,13 +68,35 @@ const upload = multer({
 router.get('/', authenticateToken, async (req, res) => {
   try {
     // Captura parâmetros de consulta
-    const { titulo } = req.query;
+    const { titulo, categoria_id, estado, page = 1, limit = 4 } = req.query;
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+
+    // Validação dos parâmetros
+    if (isNaN(pageNum) || pageNum < 1 || isNaN(limitNum) || limitNum < 1) {
+      return res.status(400).send({
+        message: "Parâmetros de paginação inválidos"
+      });
+    }
+
+    // Calcular offset para paginação
+    const offset = (pageNum - 1) * limitNum;
 
     // Construir cláusula WHERE dinâmica
     const whereClause = {};
     if (titulo) {
       whereClause.titulo = { [Op.like]: `%${titulo}%` }; // Filtra por correspondência parcial
     }
+    if (categoria_id) {
+      whereClause.categoria_id = categoria_id;
+    }
+    if (estado) {
+      whereClause.estado = estado;
+    }
+    whereClause.disponivel = true;
+    
+    // Obter total de registros para calcular número total de páginas
+    const count = await db.Artigo.count({ where: whereClause });
 
     const artigos = await db.Artigo.findAll({
       where: whereClause, // Aplica filtro de pesquisa
@@ -95,10 +117,24 @@ router.get('/', authenticateToken, async (req, res) => {
           attributes: ['id', 'caminho_foto']
         }
       ],
-      order: [['data_publicacao', 'DESC']] // Ordena por data decrescente
+      order: [['data_publicacao', 'DESC']], // Ordena por data decrescente
+      limit: limitNum,
+      offset: offset
     });
 
-    res.json(artigos);
+    // Calcular total de páginas
+    const totalPages = Math.ceil(count / limitNum);
+
+    // Retorna o resultado paginado
+    res.json({
+      artigos: artigos,
+      pagination: {
+        totalItems: count,
+        totalPages: totalPages,
+        currentPage: pageNum,
+        itemsPerPage: limitNum
+      }
+    });
   } catch (error) {
     res.status(500).send({
       message: error.message || "Erro ao obter artigos"
@@ -255,16 +291,16 @@ router.delete('/:artigoId/fotos/:fotoId', authenticateToken, async (req, res) =>
       return res.status(404).json({ message: "Foto não encontrada" });
     }
 
-    // Verificar se o usuário é o dono do artigo
+    // Verificar se o utilizador é o dono do artigo
     if (foto.artigo.utilizador_id !== req.user.id) {
       return res.status(403).json({ message: "Sem permissão" });
     }
 
-    // Deletar o arquivo físico
+    // Apagar o arquivo físico
     const filePath = path.join(uploadDir, foto.caminho_foto);
     fs.unlinkSync(filePath); // Remove o arquivo
 
-    // Deletar do banco de dados
+    // Apagar da base de dados
     await foto.destroy();
 
     res.json({ message: "Foto excluída com sucesso" });
@@ -296,9 +332,9 @@ router.post('/:id/fotos', authenticateToken, upload.array('fotos', 5), // Middle
 
       await db.ArtigoFotos.bulkCreate(fotos);
 
-      res.json({ 
+      res.json({
         message: "Fotos adicionadas com sucesso",
-        fotos 
+        fotos
       });
 
     } catch (error) {
