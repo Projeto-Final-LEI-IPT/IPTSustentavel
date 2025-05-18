@@ -20,7 +20,7 @@ import './App.css';
 // Adiciona o import do logotipo
 import iptLogo from './ipt.png';
 
-// importação dos modais
+// Importação dos modais
 import UserModal from './components/UserModal';
 import CreateArticleModal from './components/CreateArticleModal';
 import MessagesModal from './components/MessagesModal';
@@ -28,6 +28,8 @@ import useImageLoader from './hooks/useImageLoader';
 import SendMessageModal from './components/SendMessageModal';
 import EditArticleModal from './components/EditArticleModal';
 import ArticleDetailModal from './components/ArticleDetailModal';
+import Footer from './components/Footer'; // Importação do componente Footer para o rodapé da aplicação
+
 // Componente de formulário do login que recebe a função onLogin como propriedade
 const LoginForm = ({ onLogin }) => {
   // Estado para armazenar o email introduzido pelo utilizador
@@ -139,7 +141,7 @@ const MemoizedArticle = memo(({ artigo, userId, onEditClick, onMessageClick, onA
           {artigo.utilizador?.id.toString() !== userId && (
             <FiMessageCircle
               className="icon message-icon-title"
-              onClick={() => onMessageClick(artigo.utilizador?.id, artigo.titulo)} // Passa ID e título
+              onClick={() => onMessageClick(artigo.utilizador?.id, artigo.titulo, artigo.id)} // Passa ID, título e ID do artigo
               title="Enviar mensagem"
             />
           )}
@@ -178,28 +180,37 @@ const MainContent = ({
   userId,
   // onSearch: função que será executada quando o utilizador clicar no botão de pesquisa
   onSearch,
-  // onMessageClick: função que será executada quando o utilizador clicar para enviar mensagem, a mensagem é enviada do utilizador logado, para o proprietario do artigo
+  // onMessageClick: função que será executada quando o utilizador clicar para enviar mensagem ao proprietario do artigo
   onMessageClick,
-  // onEditClick: função que será executada quando o utilizador(autor) clicar para edita o artigo
+  // onEditClick: função que será executada quando o utilizador(autor) clicar para editar o artigo
   onEditClick,
   // onArticleClick: função que será executada quando o utilizador clicar no botão de "Ver Detalhes" do artigo
-  onArticleClick
+  onArticleClick,
+  // currentPage: página atual para a paginação dos resultados
+  currentPage,
+  // setCurrentPage: função para atualizar a página atual na paginação
+  setCurrentPage,
+  // totalPages: número total de páginas disponíveis para navegação
+  totalPages,
+  // totalItems: número total de itens disponíveis em todas as páginas
+  totalItems,
+  // selectedCategory: categoria atualmente selecionada para filtrar os resultados
+  selectedCategory,
+  // setSelectedCategory: função para atualizar a categoria selecionada
+  setSelectedCategory,
+  // selectedCondition: condição atualmente selecionada (Novo/Usado) para filtrar os resultados
+  selectedCondition,
+  // setSelectedCondition: função para atualizar a condição selecionada
+  setSelectedCondition
 }) => {
-  // Estado para armazenar a categoria selecionada
-  const [selectedCategory, setSelectedCategory] = useState(null);
   // Estado para armazenar temporariamente o termo de pesquisa enquanto o utilizador digita
   const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
-  // Estado para controlar a paginação dos resultados
-  const [currentPage, setCurrentPage] = useState(1);
   // Estado para indicar se uma pesquisa está em curso
   const [isSearching, setIsSearching] = useState(false);
   // Estado para controlar qual grupo de categorias está a ser exibido
   const [groupIndex, setGroupIndex] = useState(0);
-  // Estado para controlar qual grupo de condição(novo/usado) está a ser exibido
-  const [selectedCondition, setSelectedCondition] = useState(null);
-  
   // Constantes de configuração
-  const itemsPerPage = 10;      // Número de itens a mostrar por página
+  const itemsPerPage = 4;      // Número de itens a mostrar por página
   const maxCategories = 15;     // Número máximo de categorias a serem consideradas
   const categoriesPerGroup = 4; // Número de categorias por grupo de visualização
 
@@ -209,16 +220,19 @@ const MainContent = ({
     categorias.slice(0, maxCategories),
     [categorias]
   );
-  
+
   // Define uma função memorizada 'handleConditionClick' que alterna o estado da 
   // condição selecionada (limpa se já estiver selecionada ou define a nova condição), 
-  // reinicia a página para 1 e desativa a pesquisa
+  // reinicia a página para 1, desativa a pesquisa e executa uma nova pesquisa com os filtros atualizados
   const handleConditionClick = useCallback((condition) => {
-    setSelectedCondition(prev => prev === condition ? null : condition);
+    const newCondition = selectedCondition === condition ? null : condition;
+    setSelectedCondition(newCondition);
     setCurrentPage(1);
     setIsSearching(false);
-  }, []);
-  
+    // Fazer nova pesquisa com o filtro de condição atualizado
+    onSearch(tempSearchTerm, selectedCategory, newCondition);
+  }, [selectedCondition, selectedCategory, tempSearchTerm, onSearch, setCurrentPage]);
+
   // Função para limpar os termos de pesquisa e reiniciar o estado de pesquisa
   // useCallback evita recriações desnecessárias da função
   const handleClear = useCallback(() => {
@@ -245,20 +259,25 @@ const MainContent = ({
   );
 
   // Função para lidar com o clique nas categorias
+  // Define nova categoria, redefine página para 1 e executa pesquisa com os novos filtros
   const handleCategoryClick = useCallback((categoryId) => {
-    setSelectedCategory(prev => prev === categoryId ? null : categoryId);
+    const newCategoryId = selectedCategory === categoryId ? null : categoryId;
+    setSelectedCategory(newCategoryId);
     setCurrentPage(1);
     setIsSearching(false);
-  }, []);
+    // Fazer nova pesquisa com o filtro de categoria atualizado
+    onSearch(tempSearchTerm, newCategoryId, selectedCondition);
+  }, [selectedCategory, selectedCondition, setCurrentPage]);
 
   // Função para executar a pesquisa quando o utilizador clica no botão de pesquisa
   // useCallback evita recriações desnecessárias desta função
   const handleSearchClick = useCallback(() => {
-    onSearch(tempSearchTerm); // Executa a pesquisa com o termo temporário
     setSearchTerm(tempSearchTerm); // Atualiza o termo de pesquisa oficial
     setCurrentPage(1); // Volta para a primeira página após uma nova pesquisa
     setIsSearching(!!tempSearchTerm.trim()); // Ativa o estado de pesquisa se existir texto de pesquisa
-  }, [tempSearchTerm, setSearchTerm, onSearch]);
+    // Incluir os filtros na pesquisa
+    onSearch(tempSearchTerm, selectedCategory, selectedCondition);
+  }, [tempSearchTerm, selectedCategory, selectedCondition, setSearchTerm, onSearch, setCurrentPage]);
 
   // Função para avançar para o próximo grupo de categorias
   // Impede que o índice ultrapasse o número total de grupos
@@ -271,12 +290,6 @@ const MainContent = ({
   const handlePrev = useCallback(() => {
     setGroupIndex(prev => Math.max(prev - 1, 0));
   }, []);
-
-  // Cálculo dos índices para a paginação dos artigos
-  const startIndex = (currentPage - 1) * itemsPerPage;  // Índice do primeiro artigo na página atual
-  const endIndex = startIndex + itemsPerPage;           // Índice do último artigo na página atual
-  const currentArticles = filteredArtigos.slice(startIndex, endIndex);  // Artigos a serem exibidos na página atual
-  const totalPages = Math.ceil(filteredArtigos.length / itemsPerPage);  // Total de páginas baseado no número de artigos filtrados
 
   return (
     // Inicia o elemento principal com a classe "main-content" que contém todo o conteúdo principal da aplicação após o login
@@ -369,10 +382,8 @@ const MainContent = ({
         </button>
       </div>
 
-       {/* Renderiza um componente de filtro com dois botões ('Novo' e 'Usado') que, 
-      ao serem clicados, aplicam uma classe 'active' ao elemento selecionado e chamam 
-      a função handleConditionClick para atualizar o estado
-      Filtro de condição */}
+      {/* Filtros de condição dos artigos - permite alternar entre "Novo" e "Usado" 
+          através de botões que mudam de aparência quando estão ativos */}
       <div className="condition-filter">
         <div
           className={`condition-card ${selectedCondition === 'Novo' ? 'active' : ''}`}
@@ -391,29 +402,29 @@ const MainContent = ({
       {/* Secção de artigos recentes */}
       {/* Contentor principal da secção de artigos recentes, com a classe "recent-section" para estilização*/}
       <div className="recent-section">
-      {/* Título da secção de artigos recentes
-       Renderiza um título dinâmico que exibe 'Artigos Recentes' por predefinição, 
-       ou mostra os resultados da pesquisa combinando o termo pesquisado, 
-       categoria selecionada e condição do artigo, utilizando concatenação de strings condicional*/}
-       <h2>
-         {isSearching || searchTerm || selectedCategory || selectedCondition ?
-           `Resultados ${searchTerm ? `para "${searchTerm}"` : ""
-           }${selectedCategory ?
-             `${searchTerm ? " na categoria " : "na categoria "}${categorias.find(cat => cat.id === selectedCategory)?.nome || ""
-             }` : ""
-           }${selectedCondition ?
-             `${searchTerm || selectedCategory ? " com condição " : "com condição "}${selectedCondition}` : ""
-           }` :
-           'Artigos Recentes'
-         }
-       </h2>
+        {/* Título da secção de artigos recentes
+        Renderiza um título dinâmico que exibe 'Artigos Recentes' por predefinição, 
+        ou mostra os resultados da pesquisa combinando o termo pesquisado, 
+        categoria selecionada e condição do artigo, utilizando concatenação de strings condicional*/}
+        <h2>
+          {isSearching || searchTerm || selectedCategory || selectedCondition ?
+            `Resultados ${searchTerm ? `para "${searchTerm}"` : ""
+            }${selectedCategory ?
+              `${searchTerm ? " na categoria " : "na categoria "}${categorias.find(cat => cat.id === selectedCategory)?.nome || ""
+              }` : ""
+            }${selectedCondition ?
+              `${searchTerm || selectedCategory ? " com condição " : "com condição "}${selectedCondition}` : ""
+            }` :
+            'Artigos Recentes'
+          }
+        </h2>
 
         {/* Contentor que agrupa todos os cartões de artigos, com a classe "recent-items" para estilização*/}
         <div className="recent-items">
           {/*Utiliza o método map para iterar sobre o array de artigos filtrados e criar um elemento para cada artigo
         // A arrow function recebe cada objeto "artigo" e gera um elemento JSX para ele*/}
           {/* Mapeia os artigos da página atual para criar um componente para cada um */}
-          {currentArticles.map((artigo) => (
+          {artigos.map((artigo) => (
             <MemoizedArticle
               // Cria um cartão para cada artigo, com uma chave única baseada no ID do artigo e a classe "item-card"
               key={artigo.id}
@@ -426,36 +437,53 @@ const MainContent = ({
           ))}
         </div>
 
-        <div className="pagination">
-          {/* Botão para voltar à página anterior */}
-          <button
-            className="page-button"
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}  // Reduz a página atual, mas não permite valor menor que 1
-            disabled={currentPage === 1}  // Desativa o botão quando já estamos na primeira página
-          >
-            Anterior
-          </button>
+        {/* Exibe mensagem se não houver artigos */}
+        {artigos.length === 0 && (
+          <div className="no-results-message">
+            Não foram encontrados artigos para exibir nesta página.
+          </div>
+        )}
 
-          {/* Cria botões para cada página disponível */}
-          {[...Array(totalPages)].map((_, i) => (
+        {/* Sistema de paginação - permite navegar entre páginas de resultados */}
+        {totalPages > 0 && (
+          <div className="pagination">
+            {/* Botão para voltar à página anterior - desativa-se na primeira página */}
             <button
-              key={i + 1}  // Chave única para cada botão de página
-              className={`page-button ${currentPage === i + 1 ? 'active' : ''}`}  // Adiciona classe 'active' ao botão da página atual
-              onClick={() => setCurrentPage(i + 1)} // Define a página correspondente ao botão quando clicado
+              className="page-button"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
             >
-              {i + 1}
+              Anterior
             </button>
-          ))}
 
-          {/* Botão para avançar para a próxima página */}
-          <button
-            className="page-button"
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}  // Aumenta a página atual, mas não ultrapassa o total de páginas
-            disabled={currentPage === totalPages} // Desativa o botão quando já estamos na última página
-          >
-            Próxima
-          </button>
-        </div>
+            {/* Botões numerados para cada página disponível com destaque para a página atual */}
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                className={`page-button ${currentPage === i + 1 ? 'active' : ''}`}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            {/* Botão para avançar para a próxima página - desativa-se na última página */}
+            <button
+              className="page-button"
+              onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              Próxima
+            </button>
+          </div>
+        )}
+
+        {/* Contador de itens - mostra informação sobre a quantidade de itens exibidos */}
+        {totalItems > 0 && (
+          <div className="pagination-info">
+            {Math.min(itemsPerPage, artigos.length)} de {totalItems} item(s)
+          </div>
+        )}
       </div>
     </main>
   );
@@ -479,39 +507,53 @@ function App() {
   const [selectedArticle, setSelectedArticle] = useState(null); // Estado para armazenar o artigo selecionado para visualização detalhada
   const [selectedArticleTitle, setSelectedArticleTitle] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  
+  const [selectedArticleId, setSelectedArticleId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Estado para controlar a página atual na paginação
+  const [totalPages, setTotalPages] = useState(0); // Estado para armazenar o número total de páginas
+  const [totalItems, setTotalItems] = useState(0); // Estado para armazenar o número total de itens
+  // Estado para armazenar a categoria selecionada
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  // Estado para controlar qual grupo de condição(novo/usado) está a ser exibido
+  const [selectedCondition, setSelectedCondition] = useState(null);
+
+  // Função para carregar dados da API com suporte a paginação e filtros
   const loadData = useCallback(async () => {
     try {
-      // Utiliza Promise.all (esta técnica permite fazer múltiplos pedidos à API em paralelo), neste caso duas chamadas á API em paralelo e aguardar que ambas terminem
-      const [artigosResponse, categoriasResponse] = await Promise.all([
-        // Faz um pedido GET para obter a lista de artigos, incluindo o token de autenticação nos cabeçalhos
-        api.get('/artigos', {
-          params: { include: ['fotos', 'categoria'] },
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        }),
-        // Faz um pedido GET para obter a lista de categorias, também incluindo o token de autenticação
-        api.get('/categorias', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        })
-      ]);
+      // Get das categorias
+      const categoriasResponse = await api.get('/categorias', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      // Configura parâmetros de consulta incluindo paginação e filtros opcionais
+      const params = {
+        include: ['fotos', 'categoria'],
+        page: currentPage,
+        limit: 4
+      };
+
+      // Adiciona filtros opcionais aos parâmetros se estiverem definidos
+      if (searchTerm) params.titulo = searchTerm;
+      if (selectedCategory) params.categoria_id = selectedCategory;
+      if (selectedCondition) params.estado = selectedCondition;
+
+      // Procura os artigos com os parâmetros configurados
+      const artigosResponse = await api.get('/artigos', {
+        params,
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
       // Atualiza o estado dos artigos com os dados recebidos da API
-      setArtigos(artigosResponse.data);
+      setArtigos(artigosResponse.data.artigos);
+      setTotalPages(artigosResponse.data.pagination.totalPages);
+      setTotalItems(artigosResponse.data.pagination.totalItems);
+
       // Atualiza o estado das categorias com os dados recebidos da API
       setCategorias(categoriasResponse.data);
     } catch (error) {
       // Em caso de erro, regista uma mensagem de erro na consola
       console.error('Erro ao carregar dados:', error);
     }
-  }, []);
-
-  // Efeito para carregar dados quando autenticado
-  useEffect(() => {
-    // Verifica se o utilizador está autenticado antes de carregar os dados
-    if (isAuthenticated) {
-      // Chama a função loadData para carregar os artigos e categorias da API
-      loadData(); // O efeito será executado quando isAuthenticated ou loadData mudarem
-    }
-  }, [isAuthenticated, loadData]);
+  }, [currentPage, searchTerm, selectedCategory, selectedCondition]);
 
   {/* Define uma função memorizada que verifica a quantidade de mensagens não lidas do utilizador autenticado, fazendo uma chamada à API com o token de autenticação,
    e atualiza o estado unreadCount com o número recebido*/}
@@ -531,7 +573,16 @@ function App() {
     }
   }, [isAuthenticated]);
 
- // Use useEffect para chamar a função quando o componente for montado
+  // Efeito para carregar dados quando autenticado
+  useEffect(() => {
+    // Verifica se o utilizador está autenticado antes de carregar os dados
+    if (isAuthenticated) {
+      // Chama a função loadData para carregar os artigos e categorias da API
+      loadData(); // O efeito será executado quando isAuthenticated ou loadData mudarem
+    }
+  }, [isAuthenticated, loadData, currentPage]);
+
+  // Use useEffect para chamar a função quando o componente for montado
   useEffect(() => {
     fetchUnreadCount();
 
@@ -541,7 +592,7 @@ function App() {
     // Limpe o intervalo quando o componente for desmontado
     return () => clearInterval(intervalId);
   }, [fetchUnreadCount]);
- 
+
   // Função para processar o login - Define uma função assíncrona que trata do processo de login
   const handleLogin = async (credentials) => {
     try {
@@ -553,7 +604,7 @@ function App() {
       if (!token || !userId.toString() || !userTypeId.toString()) {
         throw new Error('Dados de autenticação inválidos');
       }
-      // Armazenamento de dados no localStorage - - Guarda os dados importantes no armazenamento local do navegador
+      // Armazenamento de dados no localStorage - Guarda os dados importantes no armazenamento local do navegador
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId.toString());
       localStorage.setItem('userTypeId', userTypeId.toString());
@@ -562,6 +613,7 @@ function App() {
       setUserId(userId.toString());
       setUserTypeId(userTypeId);
       setIsAuthenticated(true);
+      setCurrentPage(1); // Reset para a primeira página ao fazer login
 
       // Em caso de erro, mostra uma mensagem de alerta com os detalhes do erro
     } catch (error) {
@@ -577,26 +629,41 @@ function App() {
     setIsAuthenticated(false);
     setUserTypeId('');
     setUserId('');
+    setCurrentPage(1);
   };
 
-  // Função para pesquisa de artigos - Define uma função para pesquisar artigos com base no termo de pesquisa
-  const handleSearch = useCallback(async (term) => {
+  // Função para pesquisa de artigos com suporte a filtros de categoria e condição
+  const handleSearch = useCallback(async (term, categoryId, condition) => {
     try {
-      // Faz um pedido GET à API com o termo de pesquisa como parâmetro
+      // Prepara os parâmetros da requisição
+      const params = {
+        include: ['fotos', 'categoria'],
+        page: 1,
+        limit: 4
+      };
+
+      // Adiciona os filtros apenas se estiverem presentes
+      if (term) params.titulo = term;
+      if (categoryId) params.categoria_id = categoryId;
+      if (condition) params.estado = condition;
+
+      // Faz um pedido GET à API com os parâmetros
       const response = await api.get('/artigos', {
-        params: {
-          include: ['fotos', 'categoria'],
-          titulo: term
-        },
+        params,
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
+
       // Atualiza o estado dos artigos com os resultados da pesquisa
-      setArtigos(response.data);
+      setArtigos(response.data.artigos);
+      setTotalPages(response.data.pagination.totalPages);
+      setTotalItems(response.data.pagination.totalItems);
+      setCurrentPage(1); // Reinicia para primeira página
+
       if (!term.trim()) setSearchTerm('');
     } catch (error) {
       console.error('Erro na pesquisa:', error);
     }
-  }, [searchTerm]);// A função será recriada sempre que o termo de pesquisa mudar
+  }, []);// A função será recriada sempre que o termo de pesquisa mudar
 
   return (
     <div className="App">
@@ -624,8 +691,8 @@ function App() {
                   <span className="unread-badge-main">{unreadCount}</span>
                 )}
               </div>
-              <FiPlus className="icon" onClick={() => setShowCreateArticle(true)}  title="Criar Artigo"  />
-              <FiUser className="icon" onClick={() => setShowUserModal(true)}  title="Perfil"/>
+              <FiPlus className="icon" onClick={() => setShowCreateArticle(true)} title="Criar Artigo" />
+              <FiUser className="icon" onClick={() => setShowUserModal(true)} title="Perfil" />
               <FiLogOut
                 className="icon"
                 onClick={handleLogout}
@@ -647,11 +714,21 @@ function App() {
           onSearch={handleSearch}
           onEditClick={setEditingArticle}
           onArticleClick={(artigo) => setSelectedArticle(artigo)}
-          onMessageClick={(userId, artigo) => {
+          onMessageClick={(userId, artigo, artigo_id) => {
             setSelectedRecipient(userId);
             setSelectedArticleTitle(artigo); // Armazena o título do artigo
             setShowSendMessage(true);
+            setSelectedArticleId(artigo_id);
           }}
+          // Passa propriedades de paginação
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          selectedCondition={selectedCondition}
+          setSelectedCondition={setSelectedCondition}
         />
       ) : (
         <LoginForm onLogin={handleLogin} />
@@ -676,6 +753,21 @@ function App() {
           }}
           utilizadorLogadoId={Number(userId)}  // ID do utilizador como número (convertido de string)
           onMessagesRead={fetchUnreadCount}
+
+          onArticleClick={async (articleId) => {
+            try {
+              // Procurar os detalhes do artigo pelo ID
+              const response = await api.get(`/artigos/${articleId}`, {
+                params: { include: ['fotos', 'categoria', 'utilizador'] },
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+              });
+
+              // Definir o artigo selecionado para abrir o modal de detalhes
+              setSelectedArticle(response.data);
+            } catch (error) {
+              console.error('Erro ao buscar detalhes do artigo:', error);
+            }
+          }}
         />
       )}
 
@@ -693,10 +785,12 @@ function App() {
         <SendMessageModal
           recipientId={selectedRecipient}  // ID do destinatário da mensagem
           articleTitle={selectedArticleTitle} // Passa o título do artigo para o modal
+          articleId={selectedArticleId}  // Passa o ID do artigo
           onClose={() => {
             setShowSendMessage(false); // Fecha o modal de envio de mensagem
             setSelectedRecipient(null); // Limpa o destinatário selecionado
             setSelectedArticleTitle(null); // Limpa o título ao fechar
+            setSelectedArticleId(null);  // Limpa também o ID do artigo
           }}
         />
       )}
@@ -718,6 +812,9 @@ function App() {
           onClose={() => setSelectedArticle(null)} // Função para fechar o modal
         />
       )}
+
+      {/* Renderiza o componente Footer no final da aplicação */}
+      <Footer />
 
     </div>
   );
