@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/MessagesModal.css';
+import api from '../services/api'; // Importação do serviço API para comunicação com o servidor
 
 // Função auxiliar para formatar datas no formato português (DD/MM/AAAA)
 const formatDate = (dateString) => {
@@ -12,7 +13,7 @@ const formatDate = (dateString) => {
 };
 
 // Componente principal do modal de mensagens
-const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
+const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead, onArticleClick }) => {
   // Estado para controlar a conversa selecionada
   const [selectedConversation, setSelectedConversation] = useState(null);
   // Estado para controlar o texto da nova mensagem a ser enviada
@@ -25,7 +26,7 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
   const [loading, setLoading] = useState(true);
   // Estado para controlar mensagens de erro
   const [error, setError] = useState(null);
-  
+
   // Referência para o contentor de mensagens (para scroll automático)
   const chatMessagesRef = useRef(null);
 
@@ -49,6 +50,34 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
     });
   };
 
+  // Função para processar o clique no título de um artigo e abrir o artigo correspondente
+  const handleArticleTitleClick = async (messageContent, messageId) => {
+    try {
+      // Extrair o título do artigo da mensagem
+      const articleTitle = messageContent.split('|')[0].replace('Artigo:', '').trim();
+
+      // Procurar o ID do artigo nas mensagens
+      const response = await api.get(`/mensagens/${messageId}`);
+      const mensagemData = response.data;
+
+      // Verificar se a mensagem tem um ID de artigo associado
+      if (mensagemData && mensagemData.artigo_id) {
+        // Fechar o modal atual
+        onClose();
+
+        // Chamar a função para abrir o modal do artigo com o ID do artigo
+        if (onArticleClick) {
+          onArticleClick(mensagemData.artigo_id);
+        }
+      } else {
+        // Se não houver ID do artigo, mostrar um erro
+        setError('Não foi possível encontrar o artigo associado.');
+      }
+    } catch (error) {
+      setError(`Erro ao processar o clique no artigo: ${error.message}`);
+    }
+  };
+
   // Efeito para fazer scroll automático para a última mensagem quando a conversa muda
   useEffect(() => {
     if (chatMessagesRef.current && selectedConversation) {
@@ -61,7 +90,7 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
     let lastDate = null;
     return messages.reduce((acc, message) => {
       const currentDate = formatDate(message.data);
-      
+
       // Se a data mudou, adiciona um divisor de data
       if (currentDate !== lastDate) {
         acc.push({
@@ -71,31 +100,26 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
         });
         lastDate = currentDate;
       }
-      
+
       // Adiciona a mensagem com tipo especificado
       acc.push({
         type: 'message',
         ...message
       });
-      
+
       return acc;
     }, []);
   };
 
- useEffect(() => {
+  // Efeito para marcar mensagens como lidas quando uma conversa é selecionada
+  useEffect(() => {
     // Marca mensagens como lidas quando uma conversa é selecionada
     const markMessagesAsRead = async () => {
       if (!selectedConversation) return;
 
       try {
-        const token = localStorage.getItem('token');
-        await fetch(`http://localhost:3001/api/mensagens/marcar-lidas/${selectedConversation.user.id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        // Comunica com a API para marcar mensagens como lidas
+        await api.put(`/mensagens/marcar-lidas/${selectedConversation.user.id}`);
 
         // Atualiza o contador de mensagens não lidas para zero na conversa selecionada
         setConversations(prev => prev.map(conv => {
@@ -116,24 +140,15 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
 
     markMessagesAsRead();
   }, [selectedConversation]);
-  
+
   // Efeito para procurar as conversas do utilizador ao carregar o componente
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        // Obtém o token de autenticação do armazenamento local
-        const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:3001/api/mensagens', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        // Obter todas as mensagens do utilizador através da API
+        const response = await api.get('/mensagens');
+        const mensagens = response.data;
 
-        if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-        
-        const mensagens = await response.json();
-        
         // Agrupa as mensagens por conversa (destinatário/remetente)
         const grouped = mensagens.reduce((acc, msg) => {
           try {
@@ -168,7 +183,7 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
               content: msg.conteudo,
               data: msg.data,
               time: new Date(msg.data).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              isSent: isFromLoggedUser
+              isSent: isFromLoggedUser,
               lida: msg.lida || false  // Adicionamos o status de leitura
             });
 
@@ -176,6 +191,8 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
             if (!isFromLoggedUser && !msg.lida) {
               acc[partnerId].unreadCount = (acc[partnerId].unreadCount || 0) + 1;
             }
+
+            return acc;
           } catch (error) {
             console.error('Erro ao processar mensagem:', error);
             return acc;
@@ -210,26 +227,19 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
     try {
       if (!newMessage.trim()) throw new Error('Digite uma mensagem');
       if (!selectedConversation) throw new Error('Selecione uma conversa');
-      
+
       validateIds(utilizadorLogadoId, selectedConversation.user.id);
 
       // Envia a mensagem para a API
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/mensagens', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          conteudo: newMessage.trim(),
-          remetente_id: utilizadorLogadoId,
-          destinatario_id: selectedConversation.user.id
-        })
+      const response = await api.post('/mensagens', {
+        conteudo: newMessage.trim(),
+        remetente_id: utilizadorLogadoId,
+        destinatario_id: selectedConversation.user.id,
+        lida: 0
       });
 
-      const novaMensagem = await response.json();
-      
+      const novaMensagem = response.data;
+
       // Atualiza a lista de conversas com a nova mensagem
       setConversations(prev => prev.map(conv => {
         if (conv.id === selectedConversation.id) {
@@ -251,7 +261,7 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
         }
         return conv;
       }));
-      
+
       // Limpa o campo de nova mensagem
       setNewMessage('');
       onClose(); // Fecha o modal após enviar a mensagem
@@ -264,9 +274,10 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
   return (
     <div className="messages-modal-overlay">
       <div className="messages-modal-content">
-        <button className="close-modal-button" onClick={onClose}>&times;</button>
-        
-        <h2 className="modal-title">Mensagens</h2>
+        <div className="modal-header">
+          <h2 className="modal-title">Mensagens</h2>
+          <button className="close-modal-button" onClick={onClose}></button>
+        </div>
 
         {/* Exibe mensagens de erro quando ocorrem */}
         {error && <div className="error-message">{error}</div>}
@@ -285,7 +296,7 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              
+
               {/* Filtra e mapeia as conversas com base na pesquisa */}
               {conversations
                 .filter(conv => conv.user.nome.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -296,7 +307,13 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
                     onClick={() => setSelectedConversation(conversation)}
                   >
                     <div className="user-avatar">{conversation.user.initials}</div>
-                    <p>{conversation.user.nome}</p>
+                    <div className="conversation-info">
+                      <p>{conversation.user.nome}</p>
+                      {/* Exibir o badge de mensagens não lidas se houver alguma */}
+                      {conversation.unreadCount > 0 && (
+                        <span className="unread-badge">{conversation.unreadCount}</span>
+                      )}
+                    </div>
                   </div>
                 ))}
             </div>
@@ -321,10 +338,10 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
                         </div>
                       );
                     }
-                    
+
                     // Renderiza bolhas de mensagem
                     return (
-                <div
+                      <div
                         key={item.id}
                         className={`message-bubble ${item.isSent ? 'sent' : 'received'}`}
                       >
@@ -332,8 +349,13 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
                           <div className="message-content">
                             {item.content.includes('|') ? (
                               <>
-                                <div className="article-title">{item.content.split('|')[0].trim()}</div>
+                                {/* Título do artigo como elemento clicável */}
+                                <div className="article-title"
+                                  onClick={() => handleArticleTitleClick(item.content, item.id)}
+                                  style={{ cursor: 'pointer' }} // Cursor pointer para indicar que é clicável                                
+                                >{item.content.split('|')[0].trim()}</div>
                                 <div className="message-spacer"></div>
+                                {/* Conteúdo da mensagem após o separador */}
                                 <div className="message-text">{item.content.split('|')[1].trim()}</div>
                               </>
                             ) : (
@@ -356,7 +378,7 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Escreva uma mensagem..."
                   />
-                   <button
+                  <button
                     className="send-button"
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}>
@@ -373,28 +395,5 @@ const MessagesModal = ({ onClose, utilizadorLogadoId, onMessagesRead }) => {
     </div>
   );
 };
-
-{/* Filtra e mapeia as conversas com base na pesquisa */}
-              {conversations
-                .filter(conv => conv.user.nome.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map(conversation => (
-                  <div
-                    key={conversation.id}
-                    className={`conversation-item ${selectedConversation?.id === conversation.id ? 'active' : ''}`}
-                    onClick={() => setSelectedConversation(conversation)}
-                  >
-                    <div className="user-avatar">{conversation.user.initials}</div>
-                    <div className="conversation-info">
-                      <p>{conversation.user.nome}</p>
-                      {/* Exibir o badge de mensagens não lidas se houver alguma */}
-                      {conversation.unreadCount > 0 && (
-                        <span className="unread-badge">{conversation.unreadCount}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-            </div>
-
-
 
 export default MessagesModal;
