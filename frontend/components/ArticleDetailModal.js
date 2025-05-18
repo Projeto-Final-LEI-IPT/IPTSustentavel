@@ -1,4 +1,3 @@
-// components/ArticleDetailModal.js
 // Este componente representa um modal que mostra informações detalhadas sobre um artigo
 import React, { useState } from 'react';
 import { FiMessageCircle, FiX } from 'react-icons/fi'; // Ícones para interface
@@ -37,12 +36,13 @@ const ArticleDetailModal = ({ article, onClose }) => {
       setLoading(true);
       setError(null);
 
-      // Envia a mensagem para o backend através da API
+      // Envia a mensagem para o backend através da API, incluindo referência ao artigo no conteúdo
       await api.post('/mensagens', {
-        conteudo: messageContent,
+        conteudo: `Artigo: ${article.titulo} | ${messageContent}`,
         destinatario_id: article.utilizador.id,
         remetente_id: localStorage.getItem('userId'),
-        lida: false
+        lida: false,
+        artigo_id: article.id // Associa a mensagem ao artigo específico
       }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -65,11 +65,12 @@ const ArticleDetailModal = ({ article, onClose }) => {
   return (
     <div className="modal-overlay">
       <div className="article-detail-modal">
-        {/* Botão para fechar o modal */}
-        <button className="close-button" onClick={onClose}>
-          <FiX size={24} />
-        </button>
-
+        {/* Cabeçalho do modal com título e botão para fechar */}
+        <div className="modal-header">
+          <h2 className="modal-title">Detalhes do Artigo</h2>
+          <button className="close-modal-button" onClick={onClose}>
+          </button>
+        </div>
         <div className="product-container">
           {/* Secção da galeria de imagens */}
           <div className="gallery-section">
@@ -118,6 +119,7 @@ const ArticleDetailModal = ({ article, onClose }) => {
               <span className="condition">Estado: {article.estado || 'Não especificado'}</span>
             </div>
 
+            {/* Secção de descrição do artigo */}
             <div className="desc-info"></div>
             <h3>Descrição</h3>
             <p className="product-description">
