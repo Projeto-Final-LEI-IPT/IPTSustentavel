@@ -1,3 +1,4 @@
+// Importação das dependências React, serviço de API e estilos CSS
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import '../styles/UserModal.css';
@@ -6,10 +7,10 @@ import '../styles/UserModal.css';
 const UserModal = ({ userId, onClose, onUpdate }) => {
   // Estado para armazenar os dados do utilizador
   const [userData, setUserData] = useState({
-    nome: '',
-    email: '',
-    imagem: '',
-    tipo_utilizador_id: ''
+    nome: '', // Nome do utilizador
+    email: '', // Endereço de email
+    imagem: '', // Caminho da imagem de perfil
+    tipo_utilizador_id: '' // Identificador do tipo de utilizador
   });
 
   // Estado para guardar o ficheiro da imagem selecionada
@@ -36,10 +37,10 @@ const UserModal = ({ userId, onClose, onUpdate }) => {
         // Se existir uma imagem, carregar a imagem de perfil
         if (response.data.imagem) {
           const imageResponse = await api.get(`/pictures/${response.data.imagem}`, {
-            responseType: 'blob'
+            responseType: 'blob' // Obter a imagem como um objeto blob (Binary Large Object, um tipo de dado que representa um ficheiro binário)
           });
-          objectUrl = URL.createObjectURL(imageResponse.data);
-          setPreview(objectUrl);
+          objectUrl = URL.createObjectURL(imageResponse.data); // Criar URL para a imagem
+          setPreview(objectUrl); // Definir a pré-visualização da imagem
         }
       } catch (error) {
         // Tratamento de erro ao carregar dados
@@ -93,13 +94,13 @@ const UserModal = ({ userId, onClose, onUpdate }) => {
     try {
       // Fazer upload da imagem (se aplicável)
       const novaImagem = await uploadImage();
-      
+
       // Preparar dados atualizados
       const updatedData = {
         ...userData,
         imagem: novaImagem || userData.imagem,
         // Converter o ID do tipo de utilizador para número
-        tipo_utilizador_id: Number(userData.tipo_utilizador_id) 
+        tipo_utilizador_id: Number(userData.tipo_utilizador_id)
       };
 
       // Atualizar dados do utilizador através da API
@@ -118,11 +119,12 @@ const UserModal = ({ userId, onClose, onUpdate }) => {
     // Estrutura do modal de edição de perfil
     <div className="user-modal-overlay">
       <div className="user-modal">
-        {/* Botão de fecho do modal */}
-        <button className="close-button" onClick={onClose}>&times;</button>
-        
-        <h2>Editar Perfil</h2>
-        
+        <div className="modal-header">
+          <h2 className="modal-title" >Editar Perfil</h2>
+          {/* Botão de fecho do modal */}
+           <button className="close-modal-button" onClick={onClose}></button>
+        </div>
+
         {/* Formulário de edição de perfil */}
         <form onSubmit={handleSubmit}>
           {/* Campo de nome */}
@@ -131,7 +133,7 @@ const UserModal = ({ userId, onClose, onUpdate }) => {
             <input
               type="text"
               value={userData.nome}
-              onChange={(e) => setUserData({...userData, nome: e.target.value})}
+              onChange={(e) => setUserData({ ...userData, nome: e.target.value })}
               required
             />
           </div>
@@ -155,8 +157,8 @@ const UserModal = ({ userId, onClose, onUpdate }) => {
               value={
                 // Mapear o ID do tipo de utilizador para texto descritivo
                 userData.tipo_utilizador_id === '1' ? 'Estudante' :
-                userData.tipo_utilizador_id === '2' ? 'Docente' :
-                userData.tipo_utilizador_id === '3' ? 'Funcionário' : ''
+                  userData.tipo_utilizador_id === '2' ? 'Docente' :
+                    userData.tipo_utilizador_id === '3' ? 'Funcionário' : ''
               }
               readOnly
               className="disabled-input"
@@ -180,16 +182,16 @@ const UserModal = ({ userId, onClose, onUpdate }) => {
             </div>
             {/* Pré-visualização da imagem */}
             {preview && (
-              <img 
-                src={preview} 
-                alt="Pré-visualização" 
+              <img
+                src={preview}
+                alt="Pré-visualização"
                 className="profile-preview"
               />
             )}
           </div>
 
           {/* Botões de ação do modal */}
-          <div className="modal-actions">
+          <div className="user-modal-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>
               Cancelar
             </button>
@@ -199,7 +201,7 @@ const UserModal = ({ userId, onClose, onUpdate }) => {
           </div>
         </form>
       </div>
-    </div>
+    </div >
   );
 };
 
