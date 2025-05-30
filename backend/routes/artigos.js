@@ -68,7 +68,7 @@ const upload = multer({
 router.get('/', authenticateToken, async (req, res) => {
   try {
     // Captura parâmetros de consulta
-    const { titulo, categoria_id, estado, page = 1, limit = 4 } = req.query;
+    const { titulo, categoria_id, estado, disponivel, page = 1, limit = 4, isBackoffice } = req.query;
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
 
@@ -93,8 +93,14 @@ router.get('/', authenticateToken, async (req, res) => {
     if (estado) {
       whereClause.estado = estado;
     }
-    whereClause.disponivel = true;
-    
+    if (disponivel === 'true') {
+      whereClause.disponivel = true;
+    } else if (disponivel === 'false') {
+      whereClause.disponivel = false;
+    } else if (isBackoffice !== 'true') {
+      // Mantém o comportamento original apenas para requisições não-backoffice
+      whereClause.disponivel = true;
+    }   
     // Obter total de registros para calcular número total de páginas
     const count = await db.Artigo.count({ where: whereClause });
 
