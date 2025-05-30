@@ -1,5 +1,9 @@
 // Importação do React e dos hooks para gestão de estado
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import BackofficeDashboard from './backoffice/BackofficeDashboard';
+import NotificationsModal from './components/NotificationsModal';
+
 // Importação dos ícones da biblioteca react-icons/fi
 import {
   FiBell,
@@ -515,7 +519,10 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   // Estado para controlar qual grupo de condição(novo/usado) está a ser exibido
   const [selectedCondition, setSelectedCondition] = useState(null);
-
+  const navigate = useNavigate();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
+  
   // Função para carregar dados da API com suporte a paginação e filtros
   const loadData = useCallback(async () => {
     try {
@@ -583,15 +590,29 @@ function App() {
   }, [isAuthenticated, loadData, currentPage]);
 
   // Use useEffect para chamar a função quando o componente for montado
+// Use useEffect para chamar a função quando o componente for montado
   useEffect(() => {
-    fetchUnreadCount();
+    const token = localStorage.getItem('token');
+    const storedUserId = localStorage.getItem('userId');
+    const storedUserTypeId = localStorage.getItem('userTypeId');
 
+    if (token && storedUserId && storedUserTypeId) {
+      setUserId(storedUserId);
+      setUserTypeId(storedUserTypeId); // Garantir que seja string
+      setIsAuthenticated(true);
+    }
+    fetchUnreadCount();
+    fetchNotificationCount();
     // Configure um intervalo para verificar mensagens não lidas a cada minuto
     const intervalId = setInterval(fetchUnreadCount, 60000);
+    const notificationInterval = setInterval(fetchNotificationCount, 60000);
 
     // Limpe o intervalo quando o componente for desmontado
-    return () => clearInterval(intervalId);
-  }, [fetchUnreadCount]);
+    return () => {
+      clearInterval(intervalId);
+      clearInterval(notificationInterval);
+    };
+  }, [fetchUnreadCount, fetchNotificationCount]);
 
   // Função para processar o login - Define uma função assíncrona que trata do processo de login
   const handleLogin = async (credentials) => {
@@ -683,6 +704,7 @@ function App() {
               {userTypeId === '2' && (
                 <FiSettings
                   className="icon"
+                  onClick={() => navigate('/backoffice')}
                   title="Backoffice"
                 />
               )}
@@ -704,6 +726,10 @@ function App() {
       </header>
 
       {/* Conteúdo principal condicional - Renderiza diferentes componentes com base no estado de autenticação*/}
+  <Routes>
+        <Route
+          path="/"
+          element=
       {isAuthenticated ? (
         <MainContent
           searchTerm={searchTerm}
@@ -733,7 +759,20 @@ function App() {
       ) : (
         <LoginForm onLogin={handleLogin} />
       )}
+      />
+      <Route
+          path="/backoffice"
+          element={
+            isAuthenticated && userTypeId == 2 ? (
+              <BackofficeDashboard />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+      </Routes>
 
+        
       {/* Modal para gestão de dados do utilizador - mostrado apenas quando showUserModal*/}
       {showUserModal && (
         <UserModal
