@@ -580,6 +580,23 @@ function App() {
     }
   }, [isAuthenticated]);
 
+ // função para saber a contagem de notificações
+  const fetchNotificationCount = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const response = await api.get('/notificacoes/nao-lidas/contagem', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (response.data && typeof response.data.count === 'number') {
+        setNotificationCount(response.data.count);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar contagem de notificações:', error);
+    }
+  }, [isAuthenticated]);
+ 
   // Efeito para carregar dados quando autenticado
   useEffect(() => {
     // Verifica se o utilizador está autenticado antes de carregar os dados
@@ -700,7 +717,16 @@ function App() {
           {isAuthenticated && (
             <>
               {/* Ícones da barra superior - Apresenta ícones na barra superior apenas quando o utilizador está autenticado */}
-              <FiBell className="icon" title="Notificações" />
+               <div className="message-icon-container">
+                <FiBell
+                  className="icon"
+                  onClick={() => setShowNotifications(true)}
+                  title="Notificações"
+                />
+                {notificationCount > 0 && (
+                  <span className="unread-badge-main">{notificationCount}</span>
+                )}
+              </div>
               {userTypeId === '2' && (
                 <FiSettings
                   className="icon"
@@ -816,6 +842,13 @@ function App() {
           onClose={() => setShowCreateArticle(false)}  // Função para fechar o modal
           userId={userId}  // ID do utilizador criador do artigo
           onArticleCreated={loadData}
+        />
+      )}
+
+      {showNotifications && (
+        <NotificationsModal
+          onClose={() => setShowNotifications(false)}
+          onNotificationsRead={fetchNotificationCount}
         />
       )}
 
