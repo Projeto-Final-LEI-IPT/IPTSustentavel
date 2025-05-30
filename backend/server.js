@@ -34,6 +34,9 @@ app.use('/api/mensagens', require('./routes/mensagens'));
 app.use('/api/categorias', require('./routes/categorias'));
 //Rotas para autenticação (login, registo, etc.).
 app.use('/api/auth', require('./routes/auth'));
+//Rotas para as notificações.
+app.use('/api/notificacoes', require('./routes/notificacoes'));
+
 //Define a porta em que o servidor vai escutar
 const PORT = process.env.PORT || 3001;
 //Sincronização da Base de Dados e Inicialização do Servidor
