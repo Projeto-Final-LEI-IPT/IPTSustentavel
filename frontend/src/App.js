@@ -535,7 +535,8 @@ function App() {
       const params = {
         include: ['fotos', 'categoria'],
         page: currentPage,
-        limit: 4
+        limit: 4,
+        disponivel: true
       };
 
       // Adiciona filtros opcionais aos parâmetros se estiverem definidos
