@@ -26,7 +26,9 @@ const db = {
   Artigo: require('./artigo')(sequelize, Sequelize),
   Categoria: require('./categoria')(sequelize, Sequelize),
   Mensagem: require('./mensagem')(sequelize, Sequelize),
-  ArtigoFotos: require('./artigo_fotos')(sequelize, Sequelize)
+  ArtigoFotos: require('./artigo_fotos')(sequelize, Sequelize),
+  Notificacao: require('./notificacao')(sequelize, Sequelize),
+  NotificacaoLida: require('./notificacaolida')(sequelize, Sequelize)
 };
 
 // Definição das associações
