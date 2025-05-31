@@ -5,7 +5,8 @@ module.exports = (sequelize, DataTypes) => {
       // Campo 'conteudo' do tipo TEXT para armazenar o corpo da mensagem
       conteudo: DataTypes.TEXT,
       lida: DataTypes.BOOLEAN,
-      data: DataTypes.DATE
+      data: DataTypes.DATE,
+      artigo_id: DataTypes.INTEGER
     });
   
     Mensagem.associate = (models) => {
@@ -23,8 +24,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'destinatario_id',
         as: 'destinatario'
       });
-    };
-   
+       
      // Adicionar nova associação com o modelo Artigo (se existir)
     if (models.Artigo) {
       Mensagem.belongsTo(models.Artigo, {
