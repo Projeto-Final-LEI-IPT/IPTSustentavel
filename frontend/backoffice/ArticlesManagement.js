@@ -34,13 +34,29 @@ const ArticlesManagement = () => {
   const [searchTimeout, setSearchTimeout] = useState(null);
   const formRef = useRef(null);
   const topRef = useRef(null);
-
+  const [utilizadores, setUtilizadores] = useState([]);
+  
   // Constantes
   const ITEMS_PER_PAGE = 3;
   const MAX_PHOTOS = 5;
   const MAX_TITLE_LENGTH = 25;
   const MAX_DESC_LENGTH = 100;
 
+// useEffect para carregar os utilizadores
+useEffect(() => {
+  const loadUtilizadores = async () => {
+    try {
+      const utilizadoresRes = await api.get('/utilizadores');
+      setUtilizadores(utilizadoresRes.data);
+    } catch (err) {
+      console.error('Erro ao carregar utilizadores:', err);
+    }
+  };
+
+  loadUtilizadores();
+}, []);
+
+  
   // Limpar notificações após um tempo
   useEffect(() => {
     if (error || success) {
@@ -250,8 +266,8 @@ const ArticlesManagement = () => {
   // Criar artigo
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!newArticle.titulo || !newArticle.categoria_id) {
-      setError('Título e categoria são obrigatórios');
+    if (!newArticle.titulo || !newArticle.categoria_id || !newArticle.utilizador_id) {
+      setError('Título, categoria e proprietário são obrigatórios');
       return;
     }
 
@@ -284,7 +300,8 @@ const ArticlesManagement = () => {
         estado: 'Novo',
         categoria_id: '',
         disponivel: true,
-        validade_meses: 6
+        validade_meses: 6,
+        utilizador_id: ''
       });
       setPhotos([]);
       setError('');
@@ -573,7 +590,26 @@ const ArticlesManagement = () => {
               ))}
             </select>
           </div>
-
+                
+      <div className="am-form-group">
+        <label htmlFor="proprietario">Proprietário*</label>
+        <select
+          id="proprietario"
+          value={editingArticle ? editingArticle.utilizador_id : newArticle.utilizador_id}
+          onChange={(e) => editingArticle
+            ? setEditingArticle({ ...editingArticle, utilizador_id: e.target.value })
+            : setNewArticle({ ...newArticle, utilizador_id: e.target.value })}
+          required
+        >
+          <option value="">Selecione um proprietário</option>
+          {utilizadores.map(utilizador => (
+            <option key={utilizador.id} value={utilizador.id}>
+              {utilizador.nome} ({utilizador.email})
+            </option>
+          ))}
+        </select>
+      </div>
+            
           <div className="am-form-group">
             <label htmlFor="estado">Estado</label>
             <select
