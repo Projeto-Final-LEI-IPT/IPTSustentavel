@@ -197,17 +197,26 @@ router.post('/', authenticateToken, async (req, res) => {
     estado,
     categoria_id,
     disponivel,
-    validade_meses
+    validade_meses,
+    utilizador_id
   } = req.body;
 
   // Verifica se os campos obrigatórios estão presentes
-  if (!titulo || !categoria_id) {
+  if (!titulo || !categoria_id || !utilizador_id) {
     return res.status(400).send({
-      message: "Campos obrigatórios: titulo, categoria_id"
+      message: "Campos obrigatórios: titulo, categoria_id, utilizador_id"
     });
   }
 
   try {
+ //Verificar se o utilizador existe
+ const utilizadorExiste = await db.Utilizador.findByPk(utilizador_id);
+    if (!utilizadorExiste) {
+      return res.status(400).send({
+        message: "Utilizador selecionado não existe"
+      });
+    }
+    
     // Cria um novo artigo com os dados fornecidos
     const novoArtigo = await db.Artigo.create({
       titulo,
@@ -216,7 +225,7 @@ router.post('/', authenticateToken, async (req, res) => {
       categoria_id,
       disponivel: disponivel !== undefined ? disponivel : true,
       validade_meses: validade_meses || 6,
-      utilizador_id: req.user.id,
+      utilizador_id: utilizador_id,
       data_publicacao: new Date()
     });
 
@@ -255,8 +264,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
       });
     }
 
-    // Verificar se o utilizador é o dono do artigo
-    if (artigo.utilizador_id !== req.user.id) {
+    // Verificar se o utilizador é o dono do artigo ou docente
+    const utilizadorCompleto = await db.Utilizador.findByPk(req.user.id);
+    if (artigo.utilizador_id !== req.user.id && utilizadorCompleto.tipo_utilizador_id !== 2) {
       return res.status(403).send({
         message: "Não tem permissão para editar este artigo"
       });
@@ -371,8 +381,10 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       });
     }
 
-    // Verificar se o utlizador é o dono do artigo
-    if (artigo.utilizador_id !== req.user.id) {
+    // Verificar se o utlizador é o dono do artigo ou docente
+    const utilizadorCompleto = await db.Utilizador.findByPk(req.user.id);
+    // Verificar se o utlizador é o dono do artigo ou docente
+    if (artigo.utilizador_id !== req.user.id && utilizadorCompleto.tipo_utilizador_id !== 2) {
       return res.status(403).send({
         message: "Não tem permissão para apagar este artigo"
       });
