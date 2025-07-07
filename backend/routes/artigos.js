@@ -335,8 +335,9 @@ router.post('/:id/fotos', authenticateToken, upload.array('fotos', 5), // Middle
   async (req, res) => {
     try {
       const artigo = await db.Artigo.findByPk(req.params.id);
-
-      if (!artigo || artigo.utilizador_id !== req.user.id) {
+      const utilizadorCompleto = await db.Utilizador.findByPk(req.user.id);
+      
+      if (!artigo || artigo.utilizador_id !== req.user.id && utilizadorCompleto.tipo_utilizador_id !== 2) {
         return res.status(403).json({ message: "Operação não permitida" });
       }
 
