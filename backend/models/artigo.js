@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     // Campo 'descricao' do tipo TEXT para armazenar textos longos
     descricao: DataTypes.TEXT,
     // Campo 'estado' do tipo String
-    estado: DataTypes.BOOLEAN,
+    estado: DataTypes.STRING,
     // Campo 'data_publicacao' do tipo Date para armazenar datas
     data_publicacao: DataTypes.DATE,
     // Campo 'disponivel' do tipo Boolean (verdadeiro/falso)
