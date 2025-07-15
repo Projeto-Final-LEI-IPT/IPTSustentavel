@@ -61,9 +61,6 @@ const EditArticleModal = ({ article, categorias, onClose, onSave }) => {
   const [showLimitMessage, setShowLimitMessage] = useState(false);
   const fileInputRef = useRef(null);
   
-  // Configuração da URL base da API
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://192.168.1.68:3000'; // Ajuste conforme sua configuração
-
   // Effect para inicializar o formulário com os dados do artigo quando este é carregado
   useEffect(() => {
     if (article) {
